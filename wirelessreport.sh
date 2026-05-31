@@ -869,7 +869,8 @@ set_toggle() {
                 ;;
             2) 
                 if grep -q "BACKHAUL=" "$CONFIG"; then
-                    [ "$BACKHAUL" = "yes" ] && sed -i 's/BACKHAUL=.*/BACKHAUL="no"/' "$CONFIG" || sed -i 's/BACKHAUL=.*/BACKHAUL="yes"/' "$CONFIG"
+                    [ "$BACKHAUL" = "yes" ] && NEW_BACK="no" || NEW_BACK="yes"
+                    sed -i "s/BACKHAUL=.*/BACKHAUL=\"$NEW_BACK\"/" "$CONFIG"
                 else
                     echo 'BACKHAUL="yes"' >> "$CONFIG"
                 fi 
@@ -899,7 +900,8 @@ set_toggle() {
                 ;;
             4) 
                 if grep -q "PROFILE=" "$CONFIG"; then
-                    [ "$PROFILE" = "yes" ] && sed -i 's/PROFILE=.*/PROFILE="no"/' "$CONFIG" || sed -i 's/PROFILE=.*/PROFILE="yes"/' "$CONFIG"
+                    [ "$PROFILE" = "yes" ] && NEW_PROF="no" || NEW_PROF="yes"
+                    sed -i "s/PROFILE=.*/PROFILE=\"$NEW_PROF\"/" "$CONFIG"
                 else
                     echo 'PROFILE="yes"' >> "$CONFIG"
                 fi 
