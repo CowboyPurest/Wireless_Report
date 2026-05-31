@@ -109,7 +109,7 @@ install_menu() {
 		echo -e "  $NE  Exit                                                 "
 		echo -e "                                                            "
 		echo -e "${BL}==================================================${NC}"
-		printf "$SL"
+		printf "\n ${BL}Selection:${NC} "
 		read choice
         case "$choice" in
             1) do_install ;;
@@ -132,13 +132,13 @@ check_version() {
         LOCAL_VER="Not Installed"
     fi
 	if [ -z "$REMOTE_VER" ]; then
-        echo -e " $ST ${RD}[Offline]${NC} Could not reach GitHub"
+        echo -e " ${BL}STATUS:${NC} ${RD}[Offline]${NC} Could not reach GitHub"
     elif [ "$LOCAL_VER" = "Not Installed" ]; then
-        echo -e " $ST ${RD}[Not Installed]${NC} Latest Available: ${GR}v$REMOTE_VER${NC}"
+        echo -e " ${BL}STATUS:${NC} ${RD}[Not Installed]${NC} Latest Available: ${GR}v$REMOTE_VER${NC}"
     elif [ "$LOCAL_VER" != "$REMOTE_VER" ]; then
-        echo -e " $ST ${RD}[Update Available] v$REMOTE_VER${NC} ${GR}(Current: v$LOCAL_VER)${NC}"
+        echo -e " ${BL}STATUS:${NC} ${RD}[Update Available] v$REMOTE_VER${NC} ${GR}(Current: v$LOCAL_VER)${NC}"
     else
-        echo -e " $ST [Up to date] ${GR}v$LOCAL_VER${NC}"
+        echo -e " ${BL}STATUS:${NC} [Up to date] ${GR}v$LOCAL_VER${NC}"
     fi
 }
 
@@ -184,7 +184,6 @@ menu_vars() {
 	N7="${BL}(7)${NC}"; N8="${BL}(8)${NC}"; N9="${BL}(9)${NC}"
 	N0="${BL}(0)${NC}"; NV="${BL}(v)${NC}"; NE="${BL}(e)${NC}"
 	CT="${GR}$CUR_TIME${NC}"; DU="${GR}°$DISPLAY_UNIT${NC}"
-	SL="\n ${BL}Selection:${NC} "; ST="${BL}STATUS:${NC}"
 	DATE_USA=$(date +"%b-%d"); DATE_INTL=$(date +"%d-%b"); DATE_ISO=$(date +"%Y-%m-%d")
 }
 			
@@ -361,7 +360,7 @@ check_ssh() {
 		echo -e "  $NE  Exit to main menu                                    "
 		echo -e "                                                            "
 		echo -e "${BL}==================================================${NC}"
-		printf "$SL"
+		printf "\n ${BL}Selection:${NC} "
 		read ssh_choice
 		case "$ssh_choice" in
             1)
@@ -715,7 +714,7 @@ set_temp_date() {
         echo -e "  $NE  Exit to main menu                                    "
         echo -e "                                                            "
 		echo -e "${BL}==================================================${NC}"
-		printf "$SL"
+		printf "\n ${BL}Selection:${NC} "
         read t_choice
         case "$t_choice" in
             1) NEW_UNIT="F" ;;
@@ -855,7 +854,7 @@ set_toggle() {
 		echo -e "  $NE  Exit to main menu                                    "
         echo -e "                                                            "
 		echo -e "${BL}==================================================${NC}"
-		printf "$SL"
+		printf "\n ${BL}Selection:${NC} "
         read t_choice
 		case "$t_choice" in
             1) 
