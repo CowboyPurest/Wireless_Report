@@ -1618,6 +1618,8 @@ for iface in $IFACE_LIST; do
             m_up="$mac"
             name="$lookup"
         fi
+		name=$(echo "$name" | cut -d',' -f1 | tr -d '"{} ')
+        m_up=$(echo "$m_up" | cut -d',' -f1 | tr -d '"{} ')
         if [ -n "$link_ip" ] && [ "$link_ip" != "---" ]; then
             ip="$link_ip"
         else
@@ -1750,6 +1752,8 @@ ROW
 				m_target="$m_live"
 				n_name="$lookup"
 			fi
+			n_name=$(echo "$n_name" | cut -d',' -f1 | tr -d '"{} ')
+			m_target=$(echo "$m_target" | cut -d',' -f1 | tr -d '"{} ')
 			if [ -z "$n_ip" ] || [ "$n_ip" = "---" ]; then
 				yaz_entry=$(grep -i "^$m_target|" "$YAZ_CACHE" | head -n 1)
 				if [ -n "$yaz_entry" ]; then
