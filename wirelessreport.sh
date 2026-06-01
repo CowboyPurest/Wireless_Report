@@ -1119,9 +1119,10 @@ get_name() {
 	fi
 	
 	# Not Found
-	if [[ "$name" =~ ^[[:space:],]*$ ]]; then
-	    name=""
-	fi
+	case "$name" in
+		*[![:space:],]*) ;;
+		*) name="" ;;
+	esac
 	if [ -z "$name" ] || [ "$name" = "*" ]; then
 		echo "$mac" | cut -d',' -f1 | tr -d '"{} '
 	else
