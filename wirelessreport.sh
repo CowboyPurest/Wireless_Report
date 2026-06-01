@@ -1539,7 +1539,7 @@ awk '$0 ~ /0x2/ {print toupper($4)"|"$1}' /proc/net/arp > "$ARP_CACHE"
 awk '{print toupper($2)"|"$3}' /var/lib/misc/dnsmasq*.leases > "$LEASES_CACHE" 2>/dev/null || > "$LEASES_CACHE"
 [ -f "$YAZ_CLIENTS" ] && awk -F',' '{print toupper($1) "|" $2 "|" $3}' "$YAZ_CLIENTS" > "$YAZ_CACHE" || > "$YAZ_CACHE"
 nvram get custom_clientlist | sed 's/</\n/g' | awk -F'>' '{if($2!="") print toupper($2)"|"$1}' > "$CUSTOM_CLIENTS_CACHE" 2>/dev/null || > "$CUSTOM_CLIENTS_CACHE"
-[ -f "/jffs/nmp_cl_json.js" ] && sed 's/},"/ \n"/g' /jffs/nmp_cl_json.js > "$NMP_CACHE" 2>/dev/null || > "$NMP_CACHE"
+[ -f "/jffs/nmp_cl_json.js" ] && sed 's/},/}\n/g; s/{"/\n{"/g' /jffs/nmp_cl_json.js > "$NMP_CACHE" 2>/dev/null || > "$NMP_CACHE"
 nvram get asus_device_list | sed 's/</\n/g' > "$DEVICE_LIST_CACHE" 2>/dev/null || > "$DEVICE_LIST_CACHE"
 M_T=$(($(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null || echo 0) / 1000))
 M_TEMP=$(get_temp_unit "$M_T")
