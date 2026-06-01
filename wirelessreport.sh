@@ -1059,9 +1059,11 @@ get_trend() {
 }
 
 get_name() {
-	local mac="$1"
-	local name=""
-	
+	local clean_mac=$(echo "$1" | grep -oE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}' | head -n1)
+    [ -z "$clean_mac" ] && return
+    local mac="$clean_mac"
+    local name=""
+    
 	# YazDHCP
 	if [ -f "$YAZ_CACHE" ]; then
 		local entry=$(grep -i "^$mac|" "$YAZ_CACHE")
@@ -1079,27 +1081,22 @@ get_name() {
 	# MLO/Random Phone Mac
 	if [ -z "$name" ] || [ "$name" = "*" ]; then
 		if [ -f "$NMP_CACHE" ]; then
-			local entry=$(grep -i "\"$mac\"" "$NMP_CACHE")
+			local entry=$(grep -i "^\"$mac\"" "$NMP_CACHE" | head -n 1)
 			if [ -n "$entry" ]; then
+				# 1. Handle MLO Swap
 				case "$entry" in
 					*\"mlo_all_mac\":\"\<*)
-						local parent_mac="${entry#*\"mlo_all_mac\":\"\<}"
-						parent_mac="${parent_mac%%\<*}"
-						parent_mac=$(echo "$parent_mac" | tr '[:lower:]' '[:upper:]')
+						local parent_mac=$(echo "$entry" | awk -F'"mlo_all_mac":"<' '{print $2}' | cut -d'>' -f1 | tr '[:lower:]' '[:upper:]')
 						if [ -n "$parent_mac" ] && [ "$parent_mac" != "$mac" ]; then
 							echo "SWAP_TO|$parent_mac"
 							return
 						fi
 						;;
 				esac
-				if case "$entry" in *\"name\":\"*) true ;; *) false ;; esac; then
-					name="${entry#*\"name\":\"}"
-					name="${name%%\"*}"
-					name=$(echo "$name" | cut -d',' -f1 | tr -d '"{}')
-					if case "$name" in *mlo*|*rssi*) true ;; *) false ;; esac; then
-						name=""
-					fi
-				fi
+				name=$(echo "$entry" | awk -F'"name":"' '{print $2}' | cut -d'"' -f1)
+				case "$name" in
+					*mlo*|*rssi*|""|"*") name="" ;;
+				esac
 			fi
 		fi
 	fi
@@ -1119,14 +1116,11 @@ get_name() {
 	fi
 	
 	# Not Found
-	case "$name" in
-		*[![:space:],]*) ;;
-		*) name="" ;;
-	esac
-	if [ -z "$name" ] || [ "$name" = "*" ]; then
-		echo "$mac" | cut -d',' -f1 | tr -d '"{} '
+	name=$(echo "$name" | cut -d',' -f1 | tr -d '"{} ')
+	if [ -z "$name" ] || [ "$name" = "*" ] || [ ${#name} -gt 32 ]; then
+		echo "$mac"
 	else
-		echo "$name" | cut -d',' -f1 | tr -d '"{} '
+		echo "$name"
 	fi
 }
 
