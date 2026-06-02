@@ -30,7 +30,7 @@
 # shellcheck shell=sh disable=SC2086,SC2155,SC3043                              #                  
 #===============================================================================#
 
-SCRIPT_VERSION="1.8.3"
+SCRIPT_VERSION="1.8.4"
 INSTALL_DIR="/jffs/addons/wireless_report"
 REPORT_SCRIPT="$INSTALL_DIR/wirelessreport.sh"
 CONFIG="$INSTALL_DIR/webui.conf"
@@ -50,7 +50,6 @@ YAZ_CACHE="/tmp/yaz_cache.tmp"
 ARP_CACHE="/tmp/arp_cache.tmp"
 LEASES_CACHE="/tmp/dnsmasq_leases.cache"
 CUSTOM_CLIENTS_CACHE="/tmp/custom_clients.cache"
-NMP_CACHE="/tmp/nmp_cl_json_parsed.cache"
 DEVICE_LIST_CACHE="/tmp/asus_device_list.cache"
 SSH_PORT=$(nvram get sshd_port)
 [ -z "$SSH_PORT" ] && SSH_PORT=22
@@ -1061,7 +1060,7 @@ get_trend() {
 get_name() {
 	local mac="$1"
 	local name=""
-		
+	
 	# YazDHCP
 	if [ -f "$YAZ_CACHE" ]; then
 		local entry=$(grep -i "^$mac|" "$YAZ_CACHE")
@@ -1073,30 +1072,6 @@ get_name() {
 		if [ -f "$CUSTOM_CLIENTS_CACHE" ]; then
 			local entry=$(grep -i "^$mac|" "$CUSTOM_CLIENTS_CACHE")
 			name="${entry#*|}"
-		fi
-	fi
-	
-	# MLO/Random Phone Mac
-	if [ -z "$name" ] || [ "$name" = "*" ]; then
-		if [ -f "$NMP_CACHE" ]; then
-			local entry=$(grep -i "\"$mac\"" "$NMP_CACHE")
-			if [ -n "$entry" ]; then
-				case "$entry" in
-					*\"mlo_all_mac\":\"\<*)
-						local parent_mac="${entry#*\"mlo_all_mac\":\"\<}"
-						parent_mac="${parent_mac%%\<*}"
-						parent_mac=$(echo "$parent_mac" | tr '[:lower:]' '[:upper:]')
-						if [ -n "$parent_mac" ] && [ "$parent_mac" != "$mac" ]; then
-							echo "SWAP_TO|$parent_mac"
-							return
-						fi
-						;;
-				esac
-				if case "$entry" in *\"name\":\"*) true ;; *) false ;; esac; then
-					name="${entry#*\"name\":\"}"
-					name="${name%%\"*}"
-				fi
-			fi
 		fi
 	fi
 	
@@ -1113,6 +1088,20 @@ get_name() {
 			fi
 		fi
 	fi
+	
+	# MLO/Random Phone Mac
+	if [ -z "$name" ] || [ "$name" = "*" ]; then
+        if [ -f "/jffs/nmp_cl_json.js" ]; then
+			local entry=$(sed 's/},"/ \n"/g' /jffs/nmp_cl_json.js | grep -i "$mac" | head -n 1)
+			local raw_parent=$(echo "$entry" | sed -n 's/.*"mlo_all_mac":"<\([^"]*\)".*/\1/p' | tr '[:lower:]' '[:upper:]')
+			local parent_mac=$(echo "$raw_parent" | cut -d'<' -f1)
+			if [ -n "$parent_mac" ] && [ "$parent_mac" != "$mac" ]; then
+				echo "SWAP_TO|$parent_mac"
+				return
+			fi
+			name=$(echo "$entry" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
+		fi
+    fi
 	
 	# Not Found
 	{ [ -z "$name" ] || [ "$name" = "*" ]; } && name="$mac"
@@ -1532,7 +1521,6 @@ awk '$0 ~ /0x2/ {print toupper($4)"|"$1}' /proc/net/arp > "$ARP_CACHE"
 awk '{print toupper($2)"|"$3}' /var/lib/misc/dnsmasq*.leases > "$LEASES_CACHE" 2>/dev/null || > "$LEASES_CACHE"
 [ -f "$YAZ_CLIENTS" ] && awk -F',' 'NR>1 {print toupper($1) "|" $2 "|" $3}' "$YAZ_CLIENTS" > "$YAZ_CACHE" || > "$YAZ_CACHE"
 nvram get custom_clientlist | sed 's/</\n/g' | awk -F'>' '{if($2!="") print toupper($2)"|"$1}' > "$CUSTOM_CLIENTS_CACHE" 2>/dev/null || > "$CUSTOM_CLIENTS_CACHE"
-[ -f "/jffs/nmp_cl_json.js" ] && sed 's/},"/ \n"/g' /jffs/nmp_cl_json.js > "$NMP_CACHE" 2>/dev/null || > "$NMP_CACHE"
 nvram get asus_device_list | sed 's/</\n/g' > "$DEVICE_LIST_CACHE" 2>/dev/null || > "$DEVICE_LIST_CACHE"
 M_T=$(($(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null || echo 0) / 1000))
 M_TEMP=$(get_temp_unit "$M_T")
@@ -2267,7 +2255,7 @@ cat <<HTML >> "$WEB_PAGE"
 </body>
 </html>
 HTML
-rm -f "$SEEN_MACS" "$HISTORY_CACHE" "$KNOWN_CACHE" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" "$MAIN_ROWS" "$NODE_ROWS" "$ALL_ROWS" "$CUSTOM_CLIENTS_CACHE" "$NMP_CACHE" "$DEVICE_LIST_CACHE"
+rm -f "$SEEN_MACS" "$HISTORY_CACHE" "$KNOWN_CACHE" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" "$MAIN_ROWS" "$NODE_ROWS" "$ALL_ROWS" "$CUSTOM_CLIENTS_CACHE" "$DEVICE_LIST_CACHE"
 rm -rf "$TELEMETRY_DIR" 2>/dev/null
 PROFILE_DONE=$(profile_now)
 # logger -p user.info -t "Wireless_Report" "Profile: node_launch=$(profile_diff "$PROFILE_START" "$PROFILE_NODE_LAUNCH_DONE")s main_scan=$(profile_diff "$PROFILE_NODE_LAUNCH_DONE" "$PROFILE_MAIN_SCAN_DONE")s node_wait=$(profile_diff "$PROFILE_MAIN_SCAN_DONE" "$PROFILE_NODE_WAIT_DONE")s node_assembly=$(profile_diff "$PROFILE_NODE_WAIT_DONE" "$PROFILE_ASSEMBLY_DONE")s html=$(profile_diff "$PROFILE_ASSEMBLY_DONE" "$PROFILE_DONE")s total=$(profile_diff "$PROFILE_START" "$PROFILE_DONE")s"
