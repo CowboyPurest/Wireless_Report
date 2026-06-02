@@ -1061,7 +1061,7 @@ get_trend() {
 get_name() {
 	local mac="$1"
 	local name=""
-    
+		
 	# YazDHCP
 	if [ -f "$YAZ_CACHE" ]; then
 		local entry=$(grep -i "^$mac|" "$YAZ_CACHE")
@@ -1079,22 +1079,23 @@ get_name() {
 	# MLO/Random Phone Mac
 	if [ -z "$name" ] || [ "$name" = "*" ]; then
 		if [ -f "$NMP_CACHE" ]; then
-			local entry=$(grep -i "^\"$mac\"" "$NMP_CACHE" | head -n 1)
+			local entry=$(grep -i "\"$mac\"" "$NMP_CACHE")
 			if [ -n "$entry" ]; then
-				# 1. Handle MLO Swap
 				case "$entry" in
 					*\"mlo_all_mac\":\"\<*)
-						local parent_mac=$(echo "$entry" | awk -F'"mlo_all_mac":"<' '{print $2}' | cut -d'>' -f1 | tr '[:lower:]' '[:upper:]')
+						local parent_mac="${entry#*\"mlo_all_mac\":\"\<}"
+						parent_mac="${parent_mac%%\<*}"
+						parent_mac=$(echo "$parent_mac" | tr '[:lower:]' '[:upper:]')
 						if [ -n "$parent_mac" ] && [ "$parent_mac" != "$mac" ]; then
 							echo "SWAP_TO|$parent_mac"
 							return
 						fi
 						;;
 				esac
-				name=$(echo "$entry" | awk -F'"name":"' '{print $2}' | cut -d'"' -f1)
-				case "$name" in
-					*mlo*|*rssi*|""|"*") name="" ;;
-				esac
+				if case "$entry" in *\"name\":\"*) true ;; *) false ;; esac; then
+					name="${entry#*\"name\":\"}"
+					name="${name%%\"*}"
+				fi
 			fi
 		fi
 	fi
@@ -1113,9 +1114,15 @@ get_name() {
 		fi
 	fi
 	
+	# Arp Cache
+	if [ -z "$name" ] && [ -f "$ARP_CACHE" ]; then
+		local arp_entry=$(grep -i "^$mac|" "$ARP_CACHE")
+		name="${arp_entry#*|}"
+	fi
+	
 	# Not Found
-	[ -z "$name" ] || [ "$name" = "*" ] && name="$mac"
-    echo "$name"
+	{ [ -z "$name" ] || [ "$name" = "*" ]; } && name="$mac"
+	echo "$name"
 }
 
 check_new_mac() {
@@ -1531,7 +1538,7 @@ awk '$0 ~ /0x2/ {print toupper($4)"|"$1}' /proc/net/arp > "$ARP_CACHE"
 awk '{print toupper($2)"|"$3}' /var/lib/misc/dnsmasq*.leases > "$LEASES_CACHE" 2>/dev/null || > "$LEASES_CACHE"
 [ -f "$YAZ_CLIENTS" ] && awk -F',' 'NR>1 {print toupper($1) "|" $2 "|" $3}' "$YAZ_CLIENTS" > "$YAZ_CACHE" || > "$YAZ_CACHE"
 nvram get custom_clientlist | sed 's/</\n/g' | awk -F'>' '{if($2!="") print toupper($2)"|"$1}' > "$CUSTOM_CLIENTS_CACHE" 2>/dev/null || > "$CUSTOM_CLIENTS_CACHE"
-[ -f "/jffs/nmp_cl_json.js" ] && sed 's/},/}\n/g; s/{"/\n{"/g' /jffs/nmp_cl_json.js > "$NMP_CACHE" 2>/dev/null || > "$NMP_CACHE"
+[ -f "/jffs/nmp_cl_json.js" ] && sed 's/},"/ \n"/g' /jffs/nmp_cl_json.js > "$NMP_CACHE" 2>/dev/null || > "$NMP_CACHE"
 nvram get asus_device_list | sed 's/</\n/g' > "$DEVICE_LIST_CACHE" 2>/dev/null || > "$DEVICE_LIST_CACHE"
 M_T=$(($(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null || echo 0) / 1000))
 M_TEMP=$(get_temp_unit "$M_T")
