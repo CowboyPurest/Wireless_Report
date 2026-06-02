@@ -1114,12 +1114,6 @@ get_name() {
 		fi
 	fi
 	
-	# Arp Cache
-	if [ -z "$name" ] && [ -f "$ARP_CACHE" ]; then
-		local arp_entry=$(grep -i "^$mac|" "$ARP_CACHE")
-		name="${arp_entry#*|}"
-	fi
-	
 	# Not Found
 	{ [ -z "$name" ] || [ "$name" = "*" ]; } && name="$mac"
 	echo "$name"
