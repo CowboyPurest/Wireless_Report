@@ -300,11 +300,15 @@ get_usb() {
             fi
         done
     fi
-	if [ "$FOUND" -eq 1 ] && [ -d "$INSTALL_DIR/data" ]; then
-        if [ ! -L "$INSTALL_DIR/data" ]; then
-            rm -rf "$INSTALL_DIR/data"
-        fi
-    fi
+	if [ "$FOUND" -eq 1 ] && [ -d "$INSTALL_DIR/data" ] && [ ! -L "$INSTALL_DIR/data" ]; then
+		if [ "$(ls -A "$INSTALL_DIR/data")" ]; then
+			echo "Found local data. Migrating to USB..."
+			cp -a "$INSTALL_DIR/data/." "$USB_PATH/"
+			rm -rf "$INSTALL_DIR/data"
+		else
+			rm -rf "$INSTALL_DIR/data"
+		fi
+	fi
     if [ "$FOUND" -eq 0 ]; then
         local ROOT_PATH=$(ls -d /tmp/mnt/*/ 2>/dev/null | grep -v "defaults" | head -n 1 | sed 's/\/$//')
         if [ -n "$ROOT_PATH" ]; then
