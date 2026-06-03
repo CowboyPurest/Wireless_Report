@@ -310,7 +310,8 @@ get_usb() {
         fi
     fi
     [ -n "$USB_PATH" ] && [ ! -d "$USB_PATH" ] && mkdir -p "$USB_PATH"
-    KNOWN_DB="$USB_PATH/known_macs.db"; HISTORY_DB="$USB_PATH/rssi_history.db" 
+    KNOWN_DB="$USB_PATH/known_macs.db"
+	HISTORY_DB="$USB_PATH/rssi_history.db" 
     ERROR_LOG="$USB_PATH/ssh_error.log"
 	export USB_PATH KNOWN_DB HISTORY_DB ERROR_LOG
 }
@@ -934,14 +935,6 @@ pause() {
     read discard
 }
 
-profile_now() {
-    awk '{print $1}' /proc/uptime
-}
-
-profile_diff() {
-    awk -v start="$1" -v end="$2" 'BEGIN {printf "%.2f", end - start}'
-}
-
 do_runtime() {
 	[ -z "$RTIME" ] && RTIME="1"
 	if [ "$RTIME" = "1" ]; then
@@ -1082,7 +1075,7 @@ get_name() {
 			local raw_parent=$(echo "$entry" | sed -n 's/.*"mlo_all_mac":"<\([^"]*\)".*/\1/p' | tr '[:lower:]' '[:upper:]')
 			local parent_mac=$(echo "$raw_parent" | cut -d'<' -f1)
 			if [ -n "$parent_mac" ] && [ "$parent_mac" != "$mac" ]; then
-				echo "SWAP_TO|$parent_mac"
+				echo "mlo_swap|$parent_mac"
 				return
 			fi
 			name=$(echo "$entry" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
@@ -1104,7 +1097,9 @@ get_name() {
 	fi
 	
 	# Not Found
-	{ [ -z "$name" ] || [ "$name" = "*" ]; } && name="$mac"
+	if [ -z "$name" ] || [ "$name" = "*" ]; then
+		name="$mac"
+	fi
 	echo "$name"
 }
 
@@ -1312,17 +1307,23 @@ get_mhz_width() {
 }
 
 run_report() {
-START_RUNTIME=$(awk '{print $1}' /proc/uptime)
-PROFILE_START=$(profile_now)
-
 #=================#
 #  Node Scan(s)   #
 #=================#
-[ -n "$SSH_NODES" ] && TARGET_LIST="$SSH_NODES" || TARGET_LIST=$(nvram get asus_device_list | sed 's/</\n/g' | grep '>2$' | awk -F '>' '{print $1"|"$2"|"$3}' | sort -t '|' -k 1,1 | awk -F '|' '{print $2"|"$3}')
+START_RUNTIME=$(awk '{print $1}' /proc/uptime)
+if [ -n "$SSH_NODES" ]; then
+    TARGET_LIST="$SSH_NODES"
+else
+    TARGET_LIST=$(nvram get asus_device_list | \
+        sed 's/</\n/g' | \
+        grep '>2$' | \
+        awk -F '>' '{print $2"|"$3}' | \
+        sort)
+fi
 NODE_DATA="$TARGET_LIST"
 NODE_COUNT_TOTAL=$(echo "$NODE_DATA" | grep -v "^$" | wc -l)
 NODE_COLORS="#64d2ff #30d158 #ffd60a #bf40bf #ff9500 #ff453a"
-PIPE="<span style='color:white;'>|</span>"
+PIPE=" <span style='color:white;'>|</span> "
 N_NAMES=""; N_TEMPS=""; N_LOADS=""; N_BOOTS=""; N_UPTIMES=""
 N_SPLIT_COUNTS=""; COLOR_IDX=0; ACTIVE_NODES=0
 TELEMETRY_DIR="/tmp/wr_telemetry"
@@ -1508,7 +1509,6 @@ for line in $TARGET_LIST; do
 		" 2>/dev/null > "$TELEMETRY_DIR/${CLEAN_IP}.out"
 	) &
 done
-PROFILE_NODE_LAUNCH_DONE=$(profile_now)
 
 #=============================#
 #  Main Scan/Device Assembly  #
@@ -1595,7 +1595,7 @@ for iface in $IFACE_LIST; do
 		link_ip=$(grep -ih "^$mac|" "$LEASES_CACHE" "$ARP_CACHE" | cut -d'|' -f2 | head -n 1)
         [ -z "$link_ip" ] && link_ip=$(arp -an | grep -i "$mac" | awk '{print $2}' | tr -d '()' | head -n 1)
 		lookup=$(get_name "$mac")
-        if echo "$lookup" | grep -q "SWAP_TO|"; then
+        if echo "$lookup" | grep -q "mlo_swap|"; then
             m_up=$(echo "$lookup" | cut -d'|' -f2)
             name=$(get_name "$m_up")
         else
@@ -1666,9 +1666,7 @@ CONSOLIDATED_T="<span class='${MC_TEMP}'>${M_TEMP}</span>"
 CONSOLIDATED_L="<span class='${MC_LOAD}'>${M_LOAD}</span>"
 CONSOLIDATED_U="<span class='val-blue'>${M_UPTIME}</span>"
 CONSOLIDATED_B="<span class='val-blue'>${M_BOOT}</span>"
-PROFILE_MAIN_SCAN_DONE=$(profile_now)
 wait
-PROFILE_NODE_WAIT_DONE=$(profile_now)
 
 #========================#
 #  Node Device Assembly  #
@@ -1728,7 +1726,7 @@ ROW
 			n_ip=$(grep -ih "^$m_live|" "$LEASES_CACHE" "$ARP_CACHE" | cut -d'|' -f2 | head -n 1)
 			[ -z "$n_ip" ] && n_ip=$(arp -an | grep -i "$m_live" | awk '{print $2}' | tr -d '()' | head -n 1)
 			lookup=$(get_name "$m_live")
-			if echo "$lookup" | grep -q "SWAP_TO|"; then
+			if echo "$lookup" | grep -q "mlo_swap|"; then
 				m_target=$(echo "$lookup" | cut -d'|' -f2)
 				n_name=$(get_name "$m_target")
 			else
@@ -1801,7 +1799,6 @@ MBPS_UNIT="<span style='font-size:14px; font-weight:bold; margin-left:2px;'>ᵐ�
 MHZ_UNIT="<span style='font-size:14px; font-weight:bold; margin-left:2px;'>ᵐʰᶻ</span>"
 mv "$NEW_HISTORY" "$HISTORY_DB"
 do_runtime
-PROFILE_ASSEMBLY_DONE=$(profile_now)
 
 #=================#
 #  Generate HTML  #
@@ -2258,9 +2255,6 @@ cat <<HTML >> "$WEB_PAGE"
 </html>
 HTML
 rm -f "$SEEN_MACS" "$HISTORY_CACHE" "$KNOWN_CACHE" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" "$MAIN_ROWS" "$NODE_ROWS" "$ALL_ROWS" "$CUSTOM_CLIENTS_CACHE" "$DEVICE_LIST_CACHE"; rm -rf "$TELEMETRY_DIR" 2>/dev/null
-PROFILE_DONE=$(profile_now)
-# logger -p user.info -t "Wireless_Report" "Profile: node_launch=$(profile_diff "$PROFILE_START" "$PROFILE_NODE_LAUNCH_DONE")s main_scan=$(profile_diff "$PROFILE_NODE_LAUNCH_DONE" "$PROFILE_MAIN_SCAN_DONE")s node_wait=$(profile_diff "$PROFILE_MAIN_SCAN_DONE" "$PROFILE_NODE_WAIT_DONE")s node_assembly=$(profile_diff "$PROFILE_NODE_WAIT_DONE" "$PROFILE_ASSEMBLY_DONE")s html=$(profile_diff "$PROFILE_ASSEMBLY_DONE" "$PROFILE_DONE")s total=$(profile_diff "$PROFILE_START" "$PROFILE_DONE")s"
-
 }
 
 case "$1" in
