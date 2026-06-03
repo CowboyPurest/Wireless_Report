@@ -40,17 +40,17 @@ TEMP_MENU="/tmp/menuTree.js"
 SS_FILE="/jffs/scripts/services-start"
 SE_FILE="/jffs/scripts/service-event"
 NEW_HISTORY="/tmp/rssi_new.db"
-HISTORY_CACHE="/tmp/rssi_history.cache"
-KNOWN_CACHE="/tmp/known_macs.cache"
 SEEN_MACS="/tmp/seen_macs.txt"
 MAIN_ROWS="/tmp/main_rows.tmp"
 NODE_ROWS="/tmp/node_rows.tmp"
 ALL_ROWS="/tmp/all_rows.tmp"
 YAZ_CACHE="/tmp/yaz_cache.tmp"
 ARP_CACHE="/tmp/arp_cache.tmp"
+KNOWN_CACHE="/tmp/known_macs.cache"
+HISTORY_CACHE="/tmp/rssi_history.cache"
 LEASES_CACHE="/tmp/dnsmasq_leases.cache"
-CUSTOM_CLIENTS_CACHE="/tmp/custom_clients.cache"
 DEVICE_LIST_CACHE="/tmp/asus_device_list.cache"
+CUSTOM_CLIENTS_CACHE="/tmp/custom_clients.cache"
 SSH_PORT=$(nvram get sshd_port)
 [ -z "$SSH_PORT" ] && SSH_PORT=22
 NODE_USER=$(nvram get http_username)
@@ -998,16 +998,16 @@ header_box () {
 }
 
 hasta() {
-echo -e "\n\n\n${BL}" #================================================================================
-echo -e "                                                                                             "
-echo -e "  |   H  H   AAA   SSS  TTTTT  AAA         L      AAA         V   V  IIIII  SSS  TTTTT  AAA  "
-echo -e "      H  H  A   A S       T   A   A        L     A   A        V   V    I   S       T   A   A "
-echo -e "  |   HHHH  AAAAA  SSS    T   AAAAA        L     AAAAA        V   V    I    SSS    T   AAAAA "
-echo -e "  |   H  H  A   A     S   T   A   A        L     A   A         V V     I       S   T   A   A "
-echo -e "  |   H  H  A   A  SSS    T   A   A        LLLLL A   A          V    IIIII  SSS    T   A   A "
-echo -e "  |                                                                                          "
-echo -e "                                                                                             "
-echo -e "${NC}\n\n\n" #================================================================================
+echo -e "\n\n\n${BL}" #=================================================================================
+echo -e "                                                                                              "
+echo -e "  |   H  H   AAA   SSS  TTTTT  AAA         L      AAA         V   V  IIIII  SSS  TTTTT  AAA   "
+echo -e "      H  H  A   A S       T   A   A        L     A   A        V   V    I   S       T   A   A  "
+echo -e "  |   HHHH  AAAAA  SSS    T   AAAAA        L     AAAAA        V   V    I    SSS    T   AAAAA  "
+echo -e "  |   H  H  A   A     S   T   A   A        L     A   A         V V     I       S   T   A   A  "
+echo -e "  |   H  H  A   A  SSS    T   A   A        LLLLL A   A          V    IIIII  SSS    T   A   A  "
+echo -e "  |                                                                                           "
+echo -e "                                                                                              "
+echo -e "${NC}\n\n\n" #=================================================================================
 }
 
 #====================#
@@ -1075,20 +1075,6 @@ get_name() {
 		fi
 	fi
 	
-	# Wireless Backhaul
-	if [ -z "$name" ] || [ "$name" = "*" ] || [ "$name" = "$mac" ]; then
-		local temp="${mac#*:}"
-		local mid_mac="${temp%:*}"
-		if [ -n "$mid_mac" ]; then
-			local node_match=""
-			[ -f "$DEVICE_LIST_CACHE" ] && node_match=$(grep -i "$mid_mac" "$DEVICE_LIST_CACHE")
-			if [ -n "$node_match" ]; then
-				local node_alias="${node_match%%>*}"
-				name="${node_alias:-NODE}-BH"
-			fi
-		fi
-	fi
-	
 	# MLO/Random Phone Mac
 	if [ -z "$name" ] || [ "$name" = "*" ]; then
         if [ -f "/jffs/nmp_cl_json.js" ]; then
@@ -1102,6 +1088,20 @@ get_name() {
 			name=$(echo "$entry" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
 		fi
     fi
+	
+	# Wireless Backhaul
+	if [ -z "$name" ] || [ "$name" = "*" ] || [ "$name" = "$mac" ]; then
+		local temp="${mac#*:}"
+		local mid_mac="${temp%:*}"
+		if [ -n "$mid_mac" ]; then
+			local node_match=""
+			[ -f "$DEVICE_LIST_CACHE" ] && node_match=$(grep -i "$mid_mac" "$DEVICE_LIST_CACHE")
+			if [ -n "$node_match" ]; then
+				local node_alias="${node_match%%>*}"
+				name="${node_alias:-NODE}-BH"
+			fi
+		fi
+	fi
 	
 	# Not Found
 	{ [ -z "$name" ] || [ "$name" = "*" ]; } && name="$mac"
@@ -1322,7 +1322,7 @@ PROFILE_START=$(profile_now)
 NODE_DATA="$TARGET_LIST"
 NODE_COUNT_TOTAL=$(echo "$NODE_DATA" | grep -v "^$" | wc -l)
 NODE_COLORS="#64d2ff #30d158 #ffd60a #bf40bf #ff9500 #ff453a"
-PIPE=" <span style='color:white;'>|</span> "
+PIPE="<span style='color:white;'>|</span>"
 N_NAMES=""; N_TEMPS=""; N_LOADS=""; N_BOOTS=""; N_UPTIMES=""
 N_SPLIT_COUNTS=""; COLOR_IDX=0; ACTIVE_NODES=0
 TELEMETRY_DIR="/tmp/wr_telemetry"
@@ -1496,7 +1496,7 @@ for line in $TARGET_LIST; do
 							HB=\"2.4GHz\"; echo \"\$iface\" | grep -q \"ath1\" && HB=\"5GHz\"
 							W=\"20\"; echo \"\$iface\" | grep -q \"ath1\" && W=\"80\"
 							LRD=\"\${RX} / \${TX}\"
-							echo \"DATA|\$mac|\$RSSI|\$iface|UP_REQ|\$SN|\$TX|\$LRD|\$W|\$HB\"
+							echo \"DATA|\$mac|\$RSSI|\$iface|UP_QCA|\$SN|\$TX|\$LRD|\$W|\$HB\"
 							NODE_COUNT=\$((NODE_COUNT + 1))
 						done
 						;;
@@ -1686,7 +1686,8 @@ for line in $TARGET_LIST; do
 	if [ -n "$NODE_OUT" ]; then
         ACTIVE_NODES=$((ACTIVE_NODES + 1))
 		COLOR_IDX=$((COLOR_IDX + 1))
-        CUR_COLOR=$(echo $NODE_COLORS | cut -d' ' -f$((COLOR_IDX))); [ -z "$CUR_COLOR" ] && CUR_COLOR="#ffffff"
+        CUR_COLOR=$(echo $NODE_COLORS | cut -d' ' -f$((COLOR_IDX)))
+		[ -z "$CUR_COLOR" ] && CUR_COLOR="#ffffff"
         STAR_HTML="<span style='color:$CUR_COLOR;'><sup>$ACTIVE_NODES</sup></span>"
         NODE_BRAND="<span class='router-branding' style='color:$CUR_COLOR;'>${NODE_DISPLAY_NAME}<sup>$ACTIVE_NODES</sup></span>"
         [ -z "$N_NAMES" ] && N_NAMES="$NODE_BRAND" || N_NAMES="$N_NAMES$PIPE$NODE_BRAND"
@@ -1708,7 +1709,7 @@ for line in $TARGET_LIST; do
         N_UPTIMES="${N_UPTIMES}${N_UPTIMES:+$PIPE}<span style='color:$CUR_COLOR;'>$N_UPTIME</span>"
 		N_BOOTS="${N_BOOTS}${N_BOOTS:+$PIPE}<span style='color:$CUR_COLOR;'>$N_BOOT</span>"
         NODE_DISPLAY_COUNT=0
-		JSON_FILE="/jffs/wlcnt.json"
+		UPTIME_QCA="/jffs/wlcnt.json"
 		while read -r dline; do
 			[ -z "$dline" ] && continue
 			IFS='|' read -r _ m_live r_raw i_raw u_raw s_name l_rate_val l_rate_disp_n w_raw hb_raw _ <<ROW
@@ -1757,15 +1758,16 @@ ROW
 			n_ip=$(printf "%s.%03d" "${n_ip%.*}" "${n_ip##*.}")
 			{ [ -z "$n_name" ] || [ "$n_name" = "*" ]; } && n_name="$m_up"
 			case "$m_live" in ??:??:??:??:??:??) echo "$m_live" >> "$SEEN_MACS" ;; esac
-			ND_TOTAL=$((ND_TOTAL + 1)); NODE_DISPLAY_COUNT=$((NODE_DISPLAY_COUNT + 1))
+			ND_TOTAL=$((ND_TOTAL + 1))
+			NODE_DISPLAY_COUNT=$((NODE_DISPLAY_COUNT + 1))
 			if [ "$r_raw" -ge -50 ]; then T_EXC=$((T_EXC+1))
             elif [ "$r_raw" -ge -60 ]; then T_GOOD=$((T_GOOD+1))
             elif [ "$r_raw" -ge -70 ]; then T_FAIR=$((T_FAIR+1))
             else T_POOR=$((T_POOR+1)); fi
-			if [ "$u_raw" = "UP_REQ" ] && echo "$i_raw" | grep -q "ath"; then
+			if [ "$u_raw" = "UP_QCA" ] && echo "$i_raw" | grep -q "ath"; then
 				NOW=$(date +%s)
 				CLEAN_MAC=$(echo "$dline" | cut -d'|' -f2 | tr -d '<> ' | awk '{print toupper($0)}')
-				START_TS=$(jq -r ".\"$CLEAN_MAC\".start // 0" "$JSON_FILE")
+				START_TS=$(jq -r ".\"$CLEAN_MAC\".start // 0" "$UPTIME_QCA")
 				if [ "$START_TS" -gt 0 ]; then
 					u_raw=$((NOW - START_TS))
 					[ "$u_raw" -lt 0 ] && u_raw=$((START_TS - NOW))
@@ -2255,8 +2257,7 @@ cat <<HTML >> "$WEB_PAGE"
 </body>
 </html>
 HTML
-rm -f "$SEEN_MACS" "$HISTORY_CACHE" "$KNOWN_CACHE" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" "$MAIN_ROWS" "$NODE_ROWS" "$ALL_ROWS" "$CUSTOM_CLIENTS_CACHE" "$DEVICE_LIST_CACHE"
-rm -rf "$TELEMETRY_DIR" 2>/dev/null
+rm -f "$SEEN_MACS" "$HISTORY_CACHE" "$KNOWN_CACHE" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" "$MAIN_ROWS" "$NODE_ROWS" "$ALL_ROWS" "$CUSTOM_CLIENTS_CACHE" "$DEVICE_LIST_CACHE"; rm -rf "$TELEMETRY_DIR" 2>/dev/null
 PROFILE_DONE=$(profile_now)
 # logger -p user.info -t "Wireless_Report" "Profile: node_launch=$(profile_diff "$PROFILE_START" "$PROFILE_NODE_LAUNCH_DONE")s main_scan=$(profile_diff "$PROFILE_NODE_LAUNCH_DONE" "$PROFILE_MAIN_SCAN_DONE")s node_wait=$(profile_diff "$PROFILE_MAIN_SCAN_DONE" "$PROFILE_NODE_WAIT_DONE")s node_assembly=$(profile_diff "$PROFILE_NODE_WAIT_DONE" "$PROFILE_ASSEMBLY_DONE")s html=$(profile_diff "$PROFILE_ASSEMBLY_DONE" "$PROFILE_DONE")s total=$(profile_diff "$PROFILE_START" "$PROFILE_DONE")s"
 
