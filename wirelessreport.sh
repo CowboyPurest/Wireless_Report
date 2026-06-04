@@ -51,14 +51,14 @@ HISTORY_CACHE="/tmp/rssi_history.cache"
 LEASES_CACHE="/tmp/dnsmasq_leases.cache"
 DEVICE_LIST_CACHE="/tmp/asus_device_list.cache"
 CUSTOM_CLIENTS_CACHE="/tmp/custom_clients.cache"
-SSH_PORT=$(nvram get sshd_port)
-[ -z "$SSH_PORT" ] && SSH_PORT=22
-NODE_USER=$(nvram get http_username)
 GITHUB="https://raw.githubusercontent.com/JB1366/Wireless_Report/main/wirelessreport.sh"
-BL='\033[38;5;39m'; GR='\033[0;32m'; NC='\033[0m'; RD='\033[0;31m'
-UL='\033[4m'; WH='\e[1;37m'; YL='\033[0;33m'
 REMOTE_VER=$(curl -sfL --retry 3 "$GITHUB" | grep "SCRIPT_VERSION=" | head -n 1 | cut -d'"' -f2 | tr -cd '0-9.')
 [ -f "/root/.ssh/id_dropbear" ] && SSH_KEY="/root/.ssh/id_dropbear" || SSH_KEY=""
+BL='\033[38;5;39m'; GR='\033[0;32m'; NC='\033[0m'; RD='\033[0;31m'
+UL='\033[4m'; WH='\e[1;37m'; YL='\033[0;33m'
+NODE_USER=$(nvram get http_username)
+SSH_PORT=$(nvram get sshd_port)
+[ -z "$SSH_PORT" ] && SSH_PORT=22
 [ -f "$CONFIG" ] && . "$CONFIG"
 doScriptUpdateFromAMTM=true
 unset LD_LIBRARY_PATH
@@ -174,7 +174,7 @@ menu_vars() {
 	N1="${BL}(1)${NC}"; N2="${BL}(2)${NC}"; N3="${BL}(3)${NC}"
 	N4="${BL}(4)${NC}"; N5="${BL}(5)${NC}"; N6="${BL}(6)${NC}"
 	N7="${BL}(7)${NC}"; N8="${BL}(8)${NC}"; N9="${BL}(9)${NC}"
-	N0="${BL}(0)${NC}"; NV="${BL}(v)${NC}"; NE="${BL}(e)${NC}"
+	N0="${BL}(0)${NC}"; NV="${BL}(v)${NC}"; NE="${BL}(e)${NC}"; NU="${BL}(u)${NC}"
 	CT="${GR}$CUR_TIME${NC}"; DU="${GR}°$DISPLAY_UNIT${NC}"
 	DATE_USA=$(date +"%b-%d"); DATE_INTL=$(date +"%d-%b"); DATE_ISO=$(date +"%Y-%m-%d")
 }
@@ -384,7 +384,7 @@ check_ssh() {
                 else
                     echo -e "${YL}[!] File not found.${NC}"
                 fi
-                echo -e "\n${BL}==================================================${NC}"
+                echo -e "\n\n${BL}==================================================${NC}"
                 pause
                 continue
                 ;;
@@ -848,6 +848,8 @@ set_toggle() {
         echo -e "  $N2  Show Wireless Backhaul: ($B_STAT)                    "
         echo -e "  $N3  Uptime Alert Pulse: ($P_STAT)                        "
 		echo -e "                                                            "
+		echo -e "                                                            "
+		echo -e "  $NU  USB Check                                            "
         echo -e "  $NV  View CONFIG                                          "
 		echo -e "  $NE  Exit to main menu                                    "
         echo -e "                                                            "
@@ -897,8 +899,16 @@ set_toggle() {
                 pause 
                 ;;
             
+			u|U) 
+                echo -e "\n${BL}================= USB Check ======================${NC}"
+                check_storage
+                echo -e "\n${BL}==================================================${NC}"
+                pause
+                continue
+                ;;
+				
 			v|V) 
-                echo -e "\n${BL}=========== Wireless Report CONFIG ===============${NC}\n"
+                echo -e "\n${BL}================== CONFIG ======================${NC}\n"
                 if [ -f "$CONFIG" ]; then
                     cat "$CONFIG"
                 else
@@ -1825,7 +1835,7 @@ ROW
         done <<EOF
 $(echo "$NODE_OUT" | grep "DATA|")
 EOF
-N_SPLIT_COUNTS="${N_SPLIT_COUNTS}${N_SPLIT_COUNTS:+ | }<span style='color:$CUR_COLOR;'>$NODE_DISPLAY_COUNT</span>"
+N_SPLIT_COUNTS="${N_SPLIT_COUNTS}${N_SPLIT_COUNTS:+$PIPE}<span style='color:$CUR_COLOR;'>$NODE_DISPLAY_COUNT</span>"
     fi
 done
 GRAND_TOTAL=$((MD_TOTAL + ND_TOTAL))
@@ -2296,7 +2306,7 @@ cat <<HTML >> "$WEB_PAGE"
 </body>
 </html>
 HTML
-rm -f "$SEEN_MACS" "$HISTORY_CACHE" "$KNOWN_CACHE" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" "$MAIN_ROWS" "$NODE_ROWS" "$ALL_ROWS" "$CUSTOM_CLIENTS_CACHE" "$DEVICE_LIST_CACHE"; rm -rf "$TELEMETRY_DIR" 2>/dev/null
+rm -rf "$SEEN_MACS" "$HISTORY_CACHE" "$KNOWN_CACHE" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" "$MAIN_ROWS" "$NODE_ROWS" "$ALL_ROWS" "$CUSTOM_CLIENTS_CACHE" "$DEVICE_LIST_CACHE" "$TELEMETRY_DIR" 2>/dev/null
 }
 
 case "$1" in
@@ -2309,7 +2319,7 @@ case "$1" in
         inject_menu
         ;;
     inject2)
-        # Called by services-start to mount tab
+        # Called by services-start to mount menu
         INJECT="2"
 		inject_menu
         ;;
@@ -2319,14 +2329,6 @@ case "$1" in
         ScriptUpdateFromAMTM "$@"
         exit "$?"
         ;;
-	usb)
-        # Check USB
-		check_storage
-        ;;
-	ssh)
-        # Check ssh
-        check_ssh
-        ;;		
 	*)
         # Run (Scans)
 		run_report
