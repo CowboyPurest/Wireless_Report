@@ -154,7 +154,7 @@ Wireless Report AiMesh is designed to be more than just a static table. Use thes
        * New Device Pulse: The entire row will pulse when a new device is first detected on the network.
        * Uptime Alert: The uptime value will pulse for any device that has connected within the last 15 minutes, helping you spot recent roaming or reconnections.
   * $\color{green}{\text{Custom Refresh Control:}}$ Use the built-in dropdown menu to adjust the Auto-Refresh Interval to suit your monitoring needs.
-  * $\color{green}{\text{Node-Hostname Sorting:}}$ Right-click the node hostnames header to toggle numerical sorting (e.g., sorting nodes 1-3 vs. 3-1).
+  * $\color{green}{\text{Node-Hostname/All-Devices Sorting:}}$ Right-click the node/All-Devices hostnames header to toggle numerical sorting (e.g., sorting nodes 1-3 vs. 3-1) (sorting All-Devices 1-3(router) vs. (router) 3-1.
   * $\color{green}{\text{Column Sorting:}}$ Remembers column sort-state of all tables, between all refreshes.
   * $\color{green}{\text{Refresh Button Runtime:}}$ Hover your mouse over the "Refresh Button" to instantly check Average runtimes + Highest/Lowest runtimes.
 
