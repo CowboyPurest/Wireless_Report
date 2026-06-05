@@ -281,10 +281,10 @@ v1.5.6-minor updates.
 v1.5.7-minor setup changes & added support for Router only people.
 v1.5.8-minor adjustments to router only mode, you only see router table now, hid the stacked/all devices/popout buttons.
 v1.5.9-minor updates, added script runtime to syslog.
-v1.6.0-adjusted tab-mount, added runtime to refresh button, added support for random phone macs.
+v1.6.0-adjusted tab-mount, added runtime to refresh button.
 v1.6.1-enhanced runtimes.
-v1.7.0-New Automated Password-less SSH Key Setup. Simplifies node authentication with a streamlined setup (Manual node reboot required during installation).
-v1.7.1-New Node Authentication tool! You can now sync or repair node connections directly from the main menu (Option 6). No more uninstalling just to add a new node—one click now handles the SSH handshake and fingerprints automatically.
+v1.7.0-New Automated Password-less SSH Key Setup. Simplifies node authentication with a streamlined setup.
+v1.7.1-New Node Authentication tool! You can now sync or repair node connections directly from the main menu (Option 6).
 v1.7.2-minor updates to Node Authentication.
 v1.7.3-added runtime toggle in install menu. also added location option to nicknames.
 v1.7.4-runtime toggle adjustment.
