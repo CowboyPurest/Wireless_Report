@@ -1241,9 +1241,9 @@ get_band() {
     # Band UI Renderer
     local class="" sort="0"
     case "$Label" in
-        "2.4G")             class="text-24"; sort="2.4" ;;
-        "5G"|"5G-1"|"5G-2") class="text-5g"; sort="5"   ;;
-        "6G"|"6G-1"|"6G-2") class="text-6g"; sort="6"   ;;
+        2.4G*)  class="text-24"; sort="2.4" ;;
+        5G*)    class="text-5g"; sort="5"   ;;
+        6G*)    class="text-6g"; sort="6"   ;;
     esac
     echo "<td data-sort='$sort' style='text-align:center;'><span class='$class'>$Label$w_text</span></td>"
 }
