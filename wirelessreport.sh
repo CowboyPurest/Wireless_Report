@@ -1326,24 +1326,24 @@ run_report() {
 #=================#
 START_RUNTIME=$(awk '{print $1}' /proc/uptime)
 if [ -n "$SSH_NODES" ]; then
-    TARGET_LIST="$SSH_NODES"
+    NODE_LIST="$SSH_NODES"
 else
-    TARGET_LIST=$(nvram get asus_device_list | \
+    NODE_LIST=$(nvram get asus_device_list | \
         sed 's/</\n/g' | \
         grep '>2$' | \
         awk -F '>' '{print $2"|"$3}' | \
         sort)
 fi
-NODE_DATA="$TARGET_LIST"
+NODE_DATA="$NODE_LIST"
 NODE_COUNT_TOTAL=$(echo "$NODE_DATA" | grep -v "^$" | wc -l)
-NODE_COLORS="#64d2ff #30d158 #ffd60a #bf40bf #ff9500 #ff453a"
+N_COLORS="#64d2ff #30d158 #ffd60a #bf40bf #ff9500 #ff453a"
 PIPE=" <span style='color:white;'>|</span> "
 N_NAMES=""; N_TEMPS=""; N_LOADS=""; N_BOOTS=""; N_UPTIMES=""
-N_SPLIT_COUNTS=""; COLOR_IDX=0; ACTIVE_NODES=0
+NODE_TOTALS=""; COLOR_INDEX=0; NUMBERED_NODE=0
 TELEMETRY_DIR="/tmp/wr_telemetry"
 rm -rf "$TELEMETRY_DIR" 2>/dev/null
 mkdir -p "$TELEMETRY_DIR"
-for line in $TARGET_LIST; do
+for line in $NODE_LIST; do
 	IP=$(echo "$line" | cut -d'|' -f2)
 	ALIAS=$(echo "$line" | cut -d'|' -f1)
 	[ -z "$IP" ] && continue
@@ -1703,23 +1703,23 @@ wait
 #========================#
 #  Node Device Assembly  #
 #========================#
-for line in $TARGET_LIST; do
+for line in $NODE_LIST; do
 	NODE_OUT=""
 	IP=$(echo "$line" | cut -d'|' -f2)
 	ALIAS=$(echo "$line" | cut -d'|' -f1)
 	[ -z "$IP" ] && continue
 	CLEAN_IP=$(echo "$IP" | tr '.' '_')
 	eval CUSTOM_NICK=\$NODE_NICK_$CLEAN_IP
-	NODE_DISPLAY_NAME="${CUSTOM_NICK:-${ALIAS:-$IP}}"
-	[ ${#NODE_DISPLAY_NAME} -gt 25 ] && NODE_DISPLAY_NAME="${NODE_DISPLAY_NAME:0:25}"
+	NODE_NAME="${CUSTOM_NICK:-${ALIAS:-$IP}}"
+	[ ${#NODE_NAME} -gt 25 ] && NODE_NAME="${NODE_NAME:0:25}"
 	[ -f "$TELEMETRY_DIR/${CLEAN_IP}.out" ] && NODE_OUT=$(cat "$TELEMETRY_DIR/${CLEAN_IP}.out")
 	if [ -n "$NODE_OUT" ]; then
-        ACTIVE_NODES=$((ACTIVE_NODES + 1))
-		COLOR_IDX=$((COLOR_IDX + 1))
-        CUR_COLOR=$(echo $NODE_COLORS | cut -d' ' -f$((COLOR_IDX)))
-		[ -z "$CUR_COLOR" ] && CUR_COLOR="#ffffff"
-        STAR_HTML="<span style='color:$CUR_COLOR;'><sup>$ACTIVE_NODES</sup></span>"
-        NODE_BRAND="<span class='router-branding' style='color:$CUR_COLOR;'>${NODE_DISPLAY_NAME}<sup>$ACTIVE_NODES</sup></span>"
+        NUMBERED_NODE=$((NUMBERED_NODE + 1))
+		COLOR_INDEX=$((COLOR_INDEX + 1))
+        NODE_COLOR=$(echo $N_COLORS | cut -d' ' -f$((COLOR_INDEX)))
+		[ -z "$NODE_COLOR" ] && NODE_COLOR="#ffffff"
+        NODE_NUM="<span style='color:$NODE_COLOR;'><sup>$NUMBERED_NODE</sup></span>"
+        NODE_BRAND="<span class='router-branding' style='color:$NODE_COLOR;'>${NODE_NAME}<sup>$NUMBERED_NODE</sup></span>"
         [ -z "$N_NAMES" ] && N_NAMES="$NODE_BRAND" || N_NAMES="$N_NAMES$PIPE$NODE_BRAND"
 		N_TEMP_RAW=$(echo "$NODE_OUT" | grep "TEMP|" | cut -d'|' -f2)
         [ ${#N_TEMP_RAW} -gt 3 ] && N_TEMP_RAW=$((N_TEMP_RAW / 1000))
@@ -1732,13 +1732,13 @@ for line in $TARGET_LIST; do
 		N_BOOT=$(date -d @$(( $(date +%s) - ${N_UPTIME_RAW:-0} )) "$D_FMT")
 		CONSOLIDATED_T="$CONSOLIDATED_T | <span class='${NC_TEMP}'>${N_TEMP}</span>"
         CONSOLIDATED_L="$CONSOLIDATED_L | <span class='${NC_LOAD}'>${N_LOAD}</span>"
-        CONSOLIDATED_U="$CONSOLIDATED_U | <span style='color:$CUR_COLOR;'>${N_UPTIME}</span>"
-        CONSOLIDATED_B="$CONSOLIDATED_B | <span style='color:$CUR_COLOR;'>${N_BOOT}</span>"
+        CONSOLIDATED_U="$CONSOLIDATED_U | <span style='color:$NODE_COLOR;'>${N_UPTIME}</span>"
+        CONSOLIDATED_B="$CONSOLIDATED_B | <span style='color:$NODE_COLOR;'>${N_BOOT}</span>"
 		N_TEMPS="${N_TEMPS}${N_TEMPS:+$PIPE}<span class='${NC_TEMP}'>$N_TEMP</span>"
 		N_LOADS="${N_LOADS}${N_LOADS:+$PIPE}<span class='${NC_LOAD}'>$N_LOAD</span>"
-        N_UPTIMES="${N_UPTIMES}${N_UPTIMES:+$PIPE}<span style='color:$CUR_COLOR;'>$N_UPTIME</span>"
-		N_BOOTS="${N_BOOTS}${N_BOOTS:+$PIPE}<span style='color:$CUR_COLOR;'>$N_BOOT</span>"
-        NODE_DISPLAY_COUNT=0
+        N_UPTIMES="${N_UPTIMES}${N_UPTIMES:+$PIPE}<span style='color:$NODE_COLOR;'>$N_UPTIME</span>"
+		N_BOOTS="${N_BOOTS}${N_BOOTS:+$PIPE}<span style='color:$NODE_COLOR;'>$N_BOOT</span>"
+        NODE_DEVICES=0
 		UPTIME_QCA="/jffs/wlcnt.json"
 		while read -r dline; do
 			[ -z "$dline" ] && continue
@@ -1789,7 +1789,7 @@ ROW
 			{ [ -z "$n_name" ] || [ "$n_name" = "*" ]; } && n_name="$m_up"
 			case "$m_live" in ??:??:??:??:??:??) echo "$m_live" >> "$SEEN_MACS" ;; esac
 			ND_TOTAL=$((ND_TOTAL + 1))
-			NODE_DISPLAY_COUNT=$((NODE_DISPLAY_COUNT + 1))
+			NODE_DEVICES=$((NODE_DEVICES + 1))
 			if [ "$r_raw" -ge -50 ]; then T_EXC=$((T_EXC+1))
             elif [ "$r_raw" -ge -60 ]; then T_GOOD=$((T_GOOD+1))
             elif [ "$r_raw" -ge -70 ]; then T_FAIR=$((T_FAIR+1))
@@ -1815,7 +1815,7 @@ ROW
 			ip_ns=$(ip_to_num "$n_ip")
 			band_td_n=$(get_band "$i_raw" "$w_raw" "$ALIAS")
             N_ROW="<tr class='$is_new'>
-				<td style='text-align:left;'>$n_name$STAR_HTML</td>
+				<td style='text-align:left;'>$n_name$NODE_NUM</td>
 				<td class='toggle-cell'>
 					<span class='m-val' data-sort='$m_up'>$m_up</span>
 					<span class='i-val' data-sort='$ip_ns'>$n_ip</span>
@@ -1836,14 +1836,14 @@ ROW
         done <<EOF
 $(echo "$NODE_OUT" | grep "DATA|")
 EOF
-N_SPLIT_COUNTS="${N_SPLIT_COUNTS}${N_SPLIT_COUNTS:+$PIPE}<span style='color:$CUR_COLOR;'>$NODE_DISPLAY_COUNT</span>"
+NODE_TOTALS="${NODE_TOTALS}${NODE_TOTALS:+$PIPE}<span style='color:$NODE_COLOR;'>$NODE_DEVICES</span>"
     fi
 done
 GRAND_TOTAL=$((MD_TOTAL + ND_TOTAL))
 BRAND_LINE_ALL="<span class='router-branding'>$M_NAME</span> | $N_NAMES"
-[ "$ACTIVE_NODES" -gt 0 ] && R_TITLE="Wireless Report AiMesh" || R_TITLE="Wireless Report"
-if [ "$ACTIVE_NODES" -ge 1 ]; then
-    FULL_DEVICE_BREAKDOWN="Devices: <span class='val-blue'>$GRAND_TOTAL</span> <span class='dash-sep'>—›</span> <span class='val-blue'>$MD_TOTAL</span> | $N_SPLIT_COUNTS"
+[ "$NUMBERED_NODE" -gt 0 ] && R_TITLE="Wireless Report AiMesh" || R_TITLE="Wireless Report"
+if [ "$NUMBERED_NODE" -ge 1 ]; then
+    FULL_DEVICE_BREAKDOWN="Devices: <span class='val-blue'>$GRAND_TOTAL</span> <span class='dash-sep'>—›</span> <span class='val-blue'>$MD_TOTAL</span> | $NODE_TOTALS"
 else
     FULL_DEVICE_BREAKDOWN="Devices: <span class='val-blue'>$MD_TOTAL</span>"
 fi
@@ -2204,7 +2204,7 @@ document.addEventListener('contextmenu', function(e) {
 				</select><span style="color: #0096ff;" id="countdown"></span>
 			</div>
 HTML
-if [ "$ACTIVE_NODES" -gt 0 ]; then
+if [ "$NUMBERED_NODE" -gt 0 ]; then
 cat <<BUTTONSHTML >> "$WEB_PAGE"			
 			<button id="btnStack" class="btn-black-blue active" onclick="switchTab('split')">Stacked</button>
 			<button id="btnAll" class="btn-black-blue" onclick="switchTab('all')">All Devices</button>
@@ -2243,14 +2243,14 @@ cat <<HTML >> "$WEB_PAGE"
 				  <div class="quality-box sig-poor" style="color:#ff453a;">Poor: <span style="background:#ff453a; color:#000; padding:1px 5px; border-radius:3px; margin-left:4px;">$T_POOR</span></div>
 			  </div>
 HTML
-if [ "$ACTIVE_NODES" -gt 0 ]; then
+if [ "$NUMBERED_NODE" -gt 0 ]; then
 cat <<NODEHTML >> "$WEB_PAGE"
 			  <div id="nodeCol" class="report-column">
                 <div class="section-header">
                   $N_NAMES <span class="router-branding"></span><br>
                   <span style="font-size:11px; font-weight:bold;">Updated: $CUR_TIME</span>
                   <hr class="sep-line">
-                  <div class="header-stats-row">Temp: <span class='${NC_TEMP}'>${N_TEMPS:-0}</span> • Load: <span class='${NC_LOAD}'>${N_LOADS:-0}</span> • Devices: <span class="val-blue">$ND_TOTAL</span> <span class="dash-sep">—›</span> $N_SPLIT_COUNTS</div>
+                  <div class="header-stats-row">Temp: <span class='${NC_TEMP}'>${N_TEMPS:-0}</span> • Load: <span class='${NC_LOAD}'>${N_LOADS:-0}</span> • Devices: <span class="val-blue">$ND_TOTAL</span> <span class="dash-sep">—›</span> $NODE_TOTALS</div>
                 </div>
                 <table id="nodeTable" class="report_table show-ip">
                   <thead><tr>
