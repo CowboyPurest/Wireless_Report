@@ -1110,7 +1110,7 @@ get_trend() {
 			elif [ "$r" -ge -60 ]; then style="color: #64d2ff; font-weight: bold;"
 			elif [ "$r" -ge -70 ]; then style="color: #ffd60a; font-weight: bold;"
 			else style="color: #ff453a; font-weight: bold;"; fi
-			rssi_history="${rssi_history}${rssi_history:+<br>}<span style='$style'>$r $n</span>"
+			rssi_history="${rssi_history}${rssi_history:+<br>}<span style='$style'>$r [$n]</span>"
 		done
 		unset IFS
 		echo -n "$trend_icon<span class='rssi-tooltip'>$rssi_history</span>"
@@ -1954,7 +1954,6 @@ cat <<HTML >> "$WEB_PAGE"
 	.refresh-box { display: inline-block; height: 28px; line-height: 26px; text-align: center; padding: 0 12px; border-radius: 4px; background: rgba(0,0,0,0.4); border: 1px solid #475a68; font-weight: bold; box-sizing: border-box; transition: all 0.2s ease; }
 	.refresh-box:hover { border-color: #0096ff; box-shadow: 0 0 10px rgba(0,150,255,0.4); cursor: pointer; }
 	${RUNTIME_CSS}
-	${RSSI_CSS}
 	.btn-black-blue { background: rgba(0,0,0,0.6); border: 1px solid #475a68; color: #0096ff; cursor: pointer; padding: 0 12px; font-size: 12px; border-radius: 4px; font-weight: bold; height: 28px; line-height: 26px; transition: all 0.2s ease; box-sizing: border-box; }
 	.btn-black-blue:hover, .btn-black-blue.active { border-color: #0096ff; box-shadow: 0 0 10px rgba(0,150,255,0.4); color: #0096ff; }
 	.btn-black-blue.active { background: rgba(0,150,255,0.15); }
