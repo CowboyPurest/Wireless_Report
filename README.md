@@ -69,6 +69,7 @@ $\color{green}{\text{Option (5):}}$ Script Toggles
  * Show Runtime Tracking: Measures and displays the total duration of script scans across your router and nodes. Toggling this setting will also reset the execution counter.
  * Show Wireless Backhaul: Toggles the visibility of dedicated node-to-router wireless backhaul links within the report tables.
  * Uptime Alert Pulse: Sets the frequency interval (Default: 15 mins, Max: 1440 mins) for checking and reporting system uptime fluctuations or heartbeat alerts.<br>
+ * Show RSSI Tooltips: Hover over any RSSI value to display a trend indicator and the last 5 historical readings.<br>
 
 ![Instructions5](https://raw.githubusercontent.com/JB1366/Wireless_Report/main/images/Instructions4.png)<br>
 
@@ -128,7 +129,7 @@ $\color{blue}{\Large\text{KEY FEATURES + NAVIGATION:}}$
 * $\color{green}{\text{Unified Dashboard:}}$ View all connected clients across your entire mesh system in one place. The table includes Hostnames, IP/MAC Addresses, RSSI, RX/TX Rates, SSID/Interface, Band, and Client Uptime.
 * $\color{green}{\text{Interactive Sorting:}}$ Click any column header (except IP and SSID) to sort data alphabetically or numerically.
 * $\color{green}{\text{Device Summary:}}$ The header displays the Grand Total of connected devices, followed by a color-coded breakdown of exactly how many clients are on each specific Router or Node.
-* $\color{green}{\text{Visual Health Cues:}}$ RSSI values are automatically graded and color-coded (Excellent, Good, Fair, or Poor) so you can identify connection issues at a glance.
+* $\color{green}{\text{Visual RSSI Cues:}}$ Connection quality is auto-graded and color-coded. Enable RSSI Tooltips in the Set Toggles Menu to reveal a history of the last 5 signal readings upon hover.
 
 \
 \
