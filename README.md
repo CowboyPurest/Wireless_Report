@@ -66,10 +66,10 @@ $\color{green}{\text{Option (4):}}$ Router & Node Nicknames: By default, the rep
 ![Instructions4](https://raw.githubusercontent.com/JB1366/Wireless_Report/main/images/Instructions3.png)<br>
 
 $\color{green}{\text{Option (5):}}$ Script Toggles
- * Show Runtime Tracking: Measures and displays the total duration of script scans across your router and nodes. Toggling this setting will also reset the execution counter.
- * Show Wireless Backhaul: Toggles the visibility of dedicated node-to-router wireless backhaul links within the report tables.
- * Uptime Alert Pulse: Sets the frequency interval (Default: 15 mins, Max: 1440 mins) for checking and reporting system uptime fluctuations or heartbeat alerts.<br>
- * Show RSSI Tooltips: Hover over any RSSI value to display a trend indicator and the last 5 historical readings.<br>
+ * $\color{blue}{\text{Show Runtime Tracking:}}$ Measures and displays the total duration of script scans across your router and nodes. Toggling this setting will also reset the execution counter.
+ * $\color{blue}{\text{Show Wireless Backhaul:}}$ Toggles the visibility of dedicated node-to-router wireless backhaul links within the report tables.
+ * $\color{blue}{\text{Uptime Alert Pulse:}}$ Sets the frequency interval (Default: 15 mins, Max: 1440 mins) for checking and reporting system uptime fluctuations or heartbeat alerts.<br>
+ * $\color{blue}{\text{Show RSSI Tooltips:}}$ Hover over any RSSI value to display a trend indicator and the last 5 historical readings.<br>
 
 ![Instructions5](https://raw.githubusercontent.com/JB1366/Wireless_Report/main/images/Instructions4.png)<br>
 
