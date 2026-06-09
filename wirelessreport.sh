@@ -168,7 +168,7 @@ menu_vars() {
 	else
 		KEY="${GR}SSH KEY FOUND${NC}"
 	fi
-	[ -z "$RS_HIST" ] && RS_HIST="1"
+	[ -z "$RS_HIST" ] && RS_HIST="0"
     if [ "$RS_HIST" = "1" ]; then
         RH_STAT="${GR}ON${NC}"
     else
