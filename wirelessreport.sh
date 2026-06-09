@@ -1715,15 +1715,19 @@ for iface in $IFACE_LIST; do
         [ -z "$link_ip" ] && link_ip=$(arp -an | grep -i "$mac" | awk '{print $2}' | tr -d '()' | head -n 1)
 		lookup=$(get_name "$mac")
         case "$lookup" in
-        mlo_swap\|*)
-            m_up="${lookup#*|}"
-            name=$(get_name "$m_up")
-            ;;
-        *)
-            m_up="$mac"
-            name="$lookup"
-            ;;
-        esac
+		mlo_swap\|*)
+			m_up="${lookup#*|}"
+			name=$(get_name "$m_up")
+			;;
+		*)
+			m_up="$mac"
+			name="$lookup"
+			;;
+		esac
+		if grep -qi "$m_up" "$SEEN_MACS"; then
+			continue
+		fi
+		echo "$m_up" >> "$SEEN_MACS"
         if [ -n "$link_ip" ] && [ "$link_ip" != "---" ]; then
             ip="$link_ip"
         else
