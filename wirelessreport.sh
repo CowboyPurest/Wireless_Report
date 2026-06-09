@@ -1775,7 +1775,7 @@ for line in $SSH_NODES; do
 		[ -z "$NODE_COLOR" ] && NODE_COLOR="#ffffff"
         NODE_NUM="<span style='color:$NODE_COLOR;'><sup>$NUMBERED_NODE</sup></span>"
         NODE_BRAND="<span class='router-branding' style='color:$NODE_COLOR;'>${NODE_NAME}<sup>$NUMBERED_NODE</sup></span>"
-        [ -z "$N_NAMES" ] && N_NAMES="$NODE_BRAND" || N_NAMES="$N_NAMES $NODE_BRAND"
+        [ -z "$N_NAMES" ] && N_NAMES="$NODE_BRAND" || N_NAMES="$N_NAMES&ensp;$NODE_BRAND"
 		N_TEMP_RAW=$(echo "$NODE_OUT" | grep "TEMP|" | cut -d'|' -f2)
         [ ${#N_TEMP_RAW} -gt 3 ] && N_TEMP_RAW=$((N_TEMP_RAW / 1000))
         N_TEMP=$(get_temp_unit "$N_TEMP_RAW")
@@ -1785,10 +1785,10 @@ for line in $SSH_NODES; do
         N_UPTIME_RAW=$(echo "$NODE_OUT" | grep "UPTIME_RAW|" | cut -d'|' -f2)
 		N_UPTIME=$(echo "$NODE_OUT" | grep "UPTIME_VAL|" | cut -d'|' -f2)
 		N_BOOT=$(date -d @$(( $(date +%s) - ${N_UPTIME_RAW:-0} )) "$D_FMT")
-		TOTAL_TEMP="$TOTAL_TEMP | <span class='${NC_TEMP}'>${N_TEMP}</span>"
-        TOTAL_LOAD="$TOTAL_LOAD | <span class='${NC_LOAD}'>${N_LOAD}</span>"
-        TOTAL_UPTIME="$TOTAL_UPTIME | <span style='color:$NODE_COLOR;'>${N_UPTIME}</span>"
-        TOTAL_BOOTTIME="$TOTAL_BOOTTIME | <span style='color:$NODE_COLOR;'>${N_BOOT}</span>"
+		TOTAL_TEMP="$TOTAL_TEMP$PIPE<span class='${NC_TEMP}'>${N_TEMP}</span>"
+        TOTAL_LOAD="$TOTAL_LOAD$PIPE<span class='${NC_LOAD}'>${N_LOAD}</span>"
+        TOTAL_UPTIME="$TOTAL_UPTIME$PIPE<span style='color:$NODE_COLOR;'>${N_UPTIME}</span>"
+        TOTAL_BOOTTIME="$TOTAL_BOOTTIME$PIPE<span style='color:$NODE_COLOR;'>${N_BOOT}</span>"
 		N_TEMPS="${N_TEMPS}${N_TEMPS:+$PIPE}<span class='${NC_TEMP}'>$N_TEMP</span>"
 		N_LOADS="${N_LOADS}${N_LOADS:+$PIPE}<span class='${NC_LOAD}'>$N_LOAD</span>"
         N_UPTIMES="${N_UPTIMES}${N_UPTIMES:+$PIPE}<span style='color:$NODE_COLOR;'>$N_UPTIME</span>"
@@ -1898,10 +1898,10 @@ RSSI_UNIT="<span style='font-size:14px; font-weight:bold; margin-left:2px;'>ᵈ�
 MBPS_UNIT="<span style='font-size:14px; font-weight:bold; margin-left:2px;'>ᵐᵇᵖˢ</span>"
 MHZ_UNIT="<span style='font-size:14px; font-weight:bold; margin-left:2px;'>ᵐʰᶻ</span>"
 GRAND_TOTAL=$((MAIN_DEVICE_TOTAL + NODE_DEVICE_TOTAL))
-BRAND_LINE_ALL="<span class='router-branding'>$MAIN_NAME</span> | $N_NAMES"
+BRAND_LINE_ALL="<span class='router-branding'>$MAIN_NAME</span>&ensp;$N_NAMES"
 [ "$NUMBERED_NODE" -gt 0 ] && R_TITLE="Wireless Report AiMesh" || R_TITLE="Wireless Report"
 if [ "$NUMBERED_NODE" -ge 1 ]; then
-    TOTAL_DEVICES="Devices: <span class='val-blue'>$GRAND_TOTAL</span> <span class='dash-sep'>—›</span> <span class='val-blue'>$MAIN_DEVICE_TOTAL</span> | $NODE_TOTALS"
+    TOTAL_DEVICES="Devices: <span class='val-blue'>$GRAND_TOTAL</span> <span class='dash-sep'>—›</span> <span class='val-blue'>$MAIN_DEVICE_TOTAL</span>$PIPE$NODE_TOTALS"
 else
     TOTAL_DEVICES="Devices: <span class='val-blue'>$MAIN_DEVICE_TOTAL</span>"
 fi
@@ -2335,7 +2335,7 @@ cat <<HTML >> "$WEB_PAGE"
               $BRAND_LINE_ALL<br>
               <span style="font-size:11px; font-weight:bold;">Updated: $CUR_TIME</span>
               <hr class="sep-line">
-              <div class="header-stats-row">Temp: $TOTAL_TEMP • Load: $TOTAL_LOAD • $TOTAL_DEVICES</div>
+              <div class="header-stats-row">Temp: $TOTAL_TEMP&ensp;Load: $TOTAL_LOAD&ensp;$TOTAL_DEVICES</div>
             </div>
             <table id="allTable" class="report_table show-ip">
               <thead><tr>
@@ -2348,7 +2348,7 @@ cat <<HTML >> "$WEB_PAGE"
                 <th onclick="sortTable(6, 'allTable')">UPTIME</th>
               </tr></thead>
               <tbody>$ALL_ROWS</tbody>
-              <tfoot><tr><td colspan="7" style="text-align: center !important;">Uptime: $TOTAL_UPTIME • Reboot: $TOTAL_BOOTTIME</td></tr></tfoot>
+              <tfoot><tr><td colspan="7" style="text-align: center !important;">Uptime: $TOTAL_UPTIME&ensp;Reboot: $TOTAL_BOOTTIME</td></tr></tfoot>
             </table>
           </div>
         </div>
