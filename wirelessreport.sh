@@ -1508,6 +1508,15 @@ for line in $SSH_NODES; do
 								DISPLAY_SSID=\$(nvram get \"\${PREFIX}_ssid\")
 							fi
 						fi
+						W="20"
+						if echo "$IFACE_INFO" | grep -q "6GHz" || echo "$IFACE_INFO" | grep -q "width:"; then
+							echo "$IFACE_INFO" | grep -q "320 MHz" && W="320"
+							echo "$IFACE_INFO" | grep -q "160 MHz" && W="160"
+							echo "$IFACE_INFO" | grep -q "80 MHz" && W="80"
+						elif [ -n "$LIVE_CHAN" ] && [ "$(echo "$LIVE_CHAN" | tr -d ',')" -gt 14 ]; then
+							W="80"
+							echo "$IFACE_INFO" | grep -q "160" && W="160"
+						fi
 						RAW_STAS=\$(iw dev \"\$iface\" station dump 2>/dev/null)
 						if [ -n \"\$RAW_STAS\" ]; then
 							echo \"\$RAW_STAS\" | awk -v def_w=\"\$DEFAULT_W\" '
