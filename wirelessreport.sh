@@ -1372,9 +1372,14 @@ parse_main_sta() {
         /in network/ {
             uptime = $3
         }
-        /^link bandwidth =/ { 
-			width = $4 
-		}
+        /link bandwidth/ {
+            for(i=1; i<=NF; i++) {
+                if($i == "bandwidth") {
+                    if ($(i+1) == "=") width = $(i+2)
+                    else width = substr($(i+1), 2)
+                }
+            }
+        }
         hex == "" {
             if (match($0, /0x[0-9a-fA-F]+/)) hex = substr($0, RSTART, RLENGTH)
         }
@@ -1456,7 +1461,7 @@ for line in $SSH_NODES; do
 							RAW=\$(wl -i \"\$iface\" sta_info \"\$mac\" 2>/dev/null)
 							RSSI=\$(echo \"\$RAW\" | awk -F': ' '/smoothed rssi:/ {print \$2; exit}')
 							[ -z \"\$RSSI\" ] && RSSI=\$(wl -i \"\$iface\" rssi \"\$mac\" 2>/dev/null | awk '{print \$1}')
-							W=\$(echo \"\$RAW\" | sed -n 's/^link bandwidth = \([0-9]*\) MHZ.*/\1/p')
+							W=\$(echo \"\$RAW\" | grep -i "bandwidth" | grep -oE '[0-9]+' | head -n 1)
 							if [ -z \"\$W\" ]; then
 								HEX=\$(echo \"\$RAW\" | grep -o '0x[0-9a-fA-F]*' | head -n1)
 								case \"\$HEX\" in 
