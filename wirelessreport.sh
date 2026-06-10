@@ -1835,33 +1835,37 @@ ROW
 			m_live=$(echo "$m_live" | tr '[:lower:]' '[:upper:]')
 			m_prefix="${m_live#??}"
 			m_prefix="${m_prefix%???}"
-			if [ "$BACKHAUL" != "yes" ]; then
-				if [ "$m_prefix" = "$MAIN_PFX" ] || echo "$NODE_PFX" | grep -q "$m_prefix"; then
-					continue
-				fi
+			IS_BH="no"
+			if [ "$BACKHAUL" = "yes" ] && ([ "$m_prefix" = "$MAIN_PFX" ] || echo "$NODE_PFX" | grep -q "$m_prefix"); then
+				IS_BH="yes"
 			fi
-			if grep -qi "$m_live" "$SEEN_MACS"; then
+			if [ "$BACKHAUL" != "yes" ] && ([ "$m_prefix" = "$MAIN_PFX" ] || echo "$NODE_PFX" | grep -q "$m_prefix"); then
+				continue
+			fi
+			seen_live_key=$([ "$IS_BH" = "yes" ] && echo "${CLEAN_IP}_${i_raw}_${m_live}" || echo "$m_live")
+			if grep -Fqi "$seen_live_key" "$SEEN_MACS"; then
 				continue
 			fi
 			n_ip=$(grep -ih "^$m_live|" "$ARP_CACHE" "$LEASES_CACHE" | cut -d'|' -f2 | head -n 1)
 			[ -z "$n_ip" ] && n_ip=$(arp -an | grep -i "$m_live" | awk '{print $2}' | tr -d '()' | head -n 1)
 			lookup=$(get_name "$m_live")
-			
+
 			##### MLO Important #####
 			case "$lookup" in
-			mlo_swap\|*)
-				m_target="${lookup#*|}"
-				n_name=$(get_name "$m_target")
-				;;
-			*)
-				m_target="$m_live"
-				n_name="$lookup"
-				;;
+				mlo_swap\|*)
+					m_target="${lookup#*|}"
+					n_name=$(get_name "$m_target")
+					;;
+				*)
+					m_target="$m_live"
+					n_name="$lookup"
+					;;
 			esac
-			if grep -qi "$m_target" "$SEEN_MACS"; then
-			continue
+			seen_target_key=$([ "$IS_BH" = "yes" ] && echo "${CLEAN_IP}_${i_raw}_${m_target}" || echo "$m_target")
+			if grep -Fqi "$seen_target_key" "$SEEN_MACS"; then
+				continue
 			fi
-			echo "$m_target" >> "$SEEN_MACS"
+			echo "$seen_target_key" >> "$SEEN_MACS"
 			##### MLO Important #####
 			
 			if [ -z "$n_ip" ] || [ "$n_ip" = "---" ]; then
@@ -1886,7 +1890,7 @@ ROW
 			n_ip=$(echo "$n_ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
 			n_ip=$(printf "%s.%03d" "${n_ip%.*}" "${n_ip##*.}")
 			{ [ -z "$n_name" ] || [ "$n_name" = "*" ]; } && n_name="$m_up"
-			case "$m_live" in ??:??:??:??:??:??) echo "$m_live" >> "$SEEN_MACS" ;; esac
+			case "$m_live" in ??:??:??:??:??:??) echo "$seen_live_key" >> "$SEEN_MACS" ;; esac
 			NODE_DEVICE_TOTAL=$((NODE_DEVICE_TOTAL + 1))
 			NODE_DEVICES=$((NODE_DEVICES + 1))
 			if [ "$u_raw" = "UP_QCA" ]; then case "$i_raw" in *ath*)
