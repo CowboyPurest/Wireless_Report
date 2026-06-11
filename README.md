@@ -302,4 +302,5 @@ v1.8.4-minor fixes for mac address issues.
 v1.8.5-minor updates. added RSSI History Tooltip.
 v1.8.6-visual & speed enhancements.
 v1.8.7-fix name resolution error.
+v1.8.8-minor updates.
 ```
