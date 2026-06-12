@@ -35,14 +35,12 @@ You can launch the installer using either of the following methods:
 curl -sfL --retry 3 https://raw.githubusercontent.com/JB1366/Wireless_Report/main/wirelessreport.sh -o /tmp/wirelessreport.sh && sh /tmp/wirelessreport.sh install
 ```
 
-Note that both methods only initiate the install screen, the installation is NOT COMPLETE at this point.
-
-Once the installer is active, you will be presented with the main configuration screen. To finish the process, you must navigate the menu items (1) through (7) to configure your environment and finalize the web integration.
+Note that both methods only initiate the install screen, the installation is NOT COMPLETE at this point.<br>
 
 ![Instructions1](https://raw.githubusercontent.com/JB1366/Wireless_Report/main/images/Instructions1.png)
 
-$\color{blue}{\text{Step 2:}}$ Run the WR Installation (Option A).<br>
-You only need to perform this full step during the initial setup and subsequent updates. Select option (1) from the menu to begin. The script will automatically perform the following:
+$\color{blue}{\text{Step 2:}}$ Select option $\color{blue}{\text{(1)}}$ from the menu to begin.<br>
+You only need to perform this full step during the initial setup and subsequent updates. The script will automatically perform the following:
 
 * $\color{green}{\text{Storage Check:}}$ Verifies the presence of a USB drive or JFFS for persistent storage.
 * $\color{green}{\text{Node Auth/SSH Keygen:}}$ Authenticates nodes, creates SSH Key if needed.
@@ -162,7 +160,7 @@ Wireless Report AiMesh is designed to be more than just a static table. Use thes
     :satellite: New Device Pulse: The entire row will pulse when a new device is first detected on the network.<br>
     :rotating_light: Uptime Alert: Spot recent roaming or reconnections instantly with a pulsing indicator for new connections. The sensitivity threshold is now user-definable (default: 15 minutes).
   * $\color{green}{\text{Custom Refresh Control:}}$ Use the built-in dropdown menu to adjust the Auto-Refresh Interval to suit your monitoring needs.
-  * $\color{green}{\text{Node-Hostname/All-Devices Sorting:}}$ Right-click the node/All-Devices hostnames header to toggle numerical sorting (e.g., sorting nodes 1-3 vs. 3-1) (sorting All-Devices 1-3(router) vs. (router) 3-1.
+  * $\color{green}{\text{Node-Hostname|All Devices Sorting:}}$ Right-click the node|All Devices hostnames header to toggle numerical sorting (e.g., sorting nodes 1-3 vs. 3-1) (sorting All-Devices 1-3(router) vs. (router) 3-1.
   * $\color{green}{\text{Column Sorting:}}$ Remembers column sort-state of all tables, between all refreshes.
   * $\color{green}{\text{Refresh Button Runtime:}}$ Hover your mouse over the "Refresh Button" to instantly check Average runtimes + Highest/Lowest runtimes.
 
