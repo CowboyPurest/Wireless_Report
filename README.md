@@ -49,11 +49,10 @@ You only need to perform this full step during the initial setup and subsequent 
 * $\color{green}{\text{Confirmation:}}$ Displays a completion message once the script is successfully integrated.
 * $\color{green}{\text{How-to/Tip:}}$ Displays how/where to view Report, router-only TIP.
 
-$\color{blue}{\text{Note:}}$ At this stage, Wireless Report is active and ready to view in your WebGUI. However, it is highly recommended to explore the Optional Configuration items in the menu before exiting. For example, use option (4) to set custom nicknames for your router nodes to make the report easier to read.<br>
+$\color{blue}{\text{Note:}}$ At this stage, Wireless Report is active and ready to view in your WebGUI. However, it is highly recommended to explore the Optional Configuration items in the menu before exiting.<br>
 \
 \
 $\color{blue}{\Large\text{OPTIONAL CONFIGURATION:}}$<br>
-Once the core installation is complete, you can use $\color{green}{\text{Options (3) through (7)}}$ to customize your experience:
 
 $\color{green}{\text{Option (3):}}$ Regional Settings: Toggle between Fahrenheit (default) and Celsius. Selecting Celsius will also automatically adjust the date to a non-US format (DD/MM/YYYY). Default is $\color{green}{\text{(1)}}$, if you do nothing.<br>
 
