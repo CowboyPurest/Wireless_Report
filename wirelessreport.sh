@@ -1299,6 +1299,18 @@ get_band() {
     echo "<td data-sort='$sort' style='text-align:center;'><span class='$class'>$Label$w_text</span></td>"
 }
 
+get_ip() {
+	ip=$(grep -ih "^$mac|" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" | cut -d'|' -f2 | head -n 1)
+	[ -z "$ip" ] && ip=$(arp -an | grep -i "$mac" | awk '{print $2}' | tr -d '()' | head -n 1)
+	case "$name" in *-BH*) ip="" ;; esac
+	if [ -z "$ip" ] || [ "$ip" = "---" ]; then
+		ip="${ROUTER_IP%.*}.$BH_COUNTER"
+		BH_COUNTER=$((BH_COUNTER + 1))
+	fi
+	ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
+	ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
+}		
+		
 fmt_uptime() {
     local T=$1
     if [ -z "$T" ] || case "$T" in *[!0-9]*) true ;; *) false ;; esac; then
@@ -1377,7 +1389,7 @@ $1
 ROW
 }
 
-parse_mlo() {
+parse_name() {
     IFS='|' read -r name mac_swap <<EOF
 $(get_name "$1")
 EOF
@@ -1666,21 +1678,13 @@ for iface in $IFACE_LIST; do
 			continue
 		fi
 		mac_swap="$mac_address"
-		parse_mlo "$mac_address"
+		parse_name "$mac_address"
 		mac="$mac_swap"
 		if grep -qi "$mac" "$SEEN_MACS"; then
 			continue
 		fi
 		echo "$mac" >> "$SEEN_MACS"
-        ip=$(grep -ih "^$mac|" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" | cut -d'|' -f2 | head -n 1)
-		[ -z "$ip" ] && ip=$(arp -an | grep -i "$mac" | awk '{print $2}' | tr -d '()' | head -n 1)
-        case "$name" in *-BH*) ip="" ;; esac
-		if [ -z "$ip" ] || [ "$ip" = "---" ]; then
-			ip="${ROUTER_IP%.*}.$BH_COUNTER"
-			BH_COUNTER=$((BH_COUNTER + 1))
-		fi
-		ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
-		ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
+        get_ip
 		{ [ -z "$name" ] || [ "$name" = "*" ]; } && name="$mac"
 		raw_info=$(wl -i "$iface" sta_info "$mac" 2>/dev/null)
 		[ -z "$raw_info" ] && raw_info=$(wl -i "$data_iface" sta_info "$mac" 2>/dev/null)
@@ -1823,22 +1827,14 @@ for line in $SSH_NODES; do
 				continue
 			fi
 			mac_swap="$mac_address"
-			parse_mlo "$mac_address"
+			parse_name "$mac_address"
 			mac="$mac_swap"
 			mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
 			if grep -Fqi "$mac_final" "$SEEN_MACS"; then
 				continue
 			fi
 			echo "$mac_final" >> "$SEEN_MACS"
-			ip=$(grep -ih "^$mac|" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" | cut -d'|' -f2 | head -n 1)
-			[ -z "$ip" ] && ip=$(arp -an | grep -i "$mac" | awk '{print $2}' | tr -d '()' | head -n 1)
-			case "$name" in *-BH*) ip="" ;; esac
-			if [ -z "$ip" ] || [ "$ip" = "---" ]; then
-				ip="${ROUTER_IP%.*}.$BH_COUNTER"
-				BH_COUNTER=$((BH_COUNTER + 1))
-			fi
-			ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
-			ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
+			get_ip
 			{ [ -z "$name" ] || [ "$name" = "*" ]; } && name="$mac"
 			[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
 			[ -z "$ssid" ] && ssid="Wireless"
