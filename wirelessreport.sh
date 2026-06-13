@@ -1309,6 +1309,9 @@ get_ip() {
 	fi
 	ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
 	ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
+	ip="${ip%% *}"
+    ip="${ip%%<*}"
+    ip_sort=$(ip_to_num "$ip")
 }		
 		
 fmt_uptime() {
@@ -1363,6 +1366,32 @@ get_temp_class() {
 get_load_class() {
     local l=$1; [ "$l" = "--" ] && { echo "stat-cool"; return; }
     awk -v l="$l" 'BEGIN { print (l>2.0 ? "stat-hot" : (l>1.0 ? "stat-warm" : "stat-cool")) }'
+}
+
+get_rssi_bars_style() {
+	if [ "$rssi" -ge -50 ]; then
+		bars="<span class='bar-box sig-exc'>||||</span>"
+		rssi_style="color: #30d158; font-weight: bold;"
+		T_EXC=$((T_EXC+1))
+	elif [ "$rssi" -ge -60 ]; then
+		bars="<span class='bar-box sig-good'>|||</span>"
+		rssi_style="color: #64d2ff; font-weight: bold;"
+		T_GOOD=$((T_GOOD+1))
+	elif [ "$rssi" -ge -70 ]; then
+		bars="<span class='bar-box sig-fair'>||</span>"
+		rssi_style="color: #ffd60a; font-weight: bold;"
+		T_FAIR=$((T_FAIR+1))
+	else
+		bars="<span class='bar-box sig-poor'>|</span>"
+		rssi_style="color: #ff453a; font-weight: bold;"
+		T_POOR=$((T_POOR+1))
+	fi
+	
+	# Maximum Column Characters
+	[ ${#name} -gt 20 ] && name="${name:0:20}"
+	[ ${#mac} -gt 17 ] && mac="${mac:0:17}"
+	[ ${#ip} -gt 15 ] && ip="${ip:0:15}"
+	[ ${#ssid} -gt 15 ] && ssid="${ssid:0:15}"
 }
 
 parse_main_sta() {
@@ -1720,33 +1749,12 @@ for iface in $IFACE_LIST; do
 		trend=$(get_trend "$mac" "$rssi" "$MAIN_NAME")
 		band=$(get_band "$iface" "$width" "$M_ALIAS")
 		uptime=$(fmt_uptime "$uptime")
-		ip_s=$(ip_to_num "$ip"); ip="${ip%% *}"; ip="${ip%%<*}"
-		if [ "$rssi" -ge -50 ]; then
-			bars="<span class='bar-box sig-exc'>||||</span>"
-			rssi_style="color: #30d158; font-weight: bold;"
-			T_EXC=$((T_EXC+1))
-		elif [ "$rssi" -ge -60 ]; then
-			bars="<span class='bar-box sig-good'>|||</span>"
-			rssi_style="color: #64d2ff; font-weight: bold;"
-			T_GOOD=$((T_GOOD+1))
-		elif [ "$rssi" -ge -70 ]; then
-			bars="<span class='bar-box sig-fair'>||</span>"
-			rssi_style="color: #ffd60a; font-weight: bold;"
-			T_FAIR=$((T_FAIR+1))
-		else
-			bars="<span class='bar-box sig-poor'>|</span>"
-			rssi_style="color: #ff453a; font-weight: bold;"
-			T_POOR=$((T_POOR+1))
-		fi
-		[ ${#name} -gt 20 ] && name="${name:0:20}"
-		[ ${#mac} -gt 17 ] && mac="${mac:0:17}"
-		[ ${#ip} -gt 15 ] && ip="${ip:0:15}"
-		[ ${#ssid} -gt 15 ] && ssid="${ssid:0:15}"
+		get_rssi_bars_style
 		M_ROW="<tr class='$is_mac_new'>
 			<td style='text-align:left;'>$name</td>
 			<td>
 				<span class='m-val' data-sort='$mac'>$mac</span>
-				<span class='i-val' data-sort='$ip_s'>$ip</span>
+				<span class='i-val' data-sort='$ip_sort'>$ip</span>
 			</td>
 			<td data-sort='$rssi' class='rssi-container'>
 				$bars <span style='$rssi_style'>$rssi</span> $trend
@@ -1855,40 +1863,19 @@ for line in $SSH_NODES; do
 			esac; fi
             is_mac_new=$(check_new_mac "$mac")
 			trend=$(get_trend "$mac" "$rssi" "$NODE_NAME")
-			ip_s=$(ip_to_num "$ip")
 			band=$(get_band "$iface" "$width" "$ALIAS")
 			uptime=$(fmt_uptime "$uptime")
-			if [ "$rssi" -ge -50 ]; then
-				bars_n="<span class='bar-box sig-exc'>||||</span>"
-				rssi_style_n="color: #30d158; font-weight: bold;"
-				T_EXC=$((T_EXC+1))
-            elif [ "$rssi" -ge -60 ]; then
-				bars_n="<span class='bar-box sig-good'>|||</span>"
-				rssi_style_n="color: #64d2ff; font-weight: bold;"
-				T_GOOD=$((T_GOOD+1))
-            elif [ "$rssi" -ge -70 ]; then
-				bars_n="<span class='bar-box sig-fair'>||</span>"
-				rssi_style_n="color: #ffd60a; font-weight: bold;"
-				T_FAIR=$((T_FAIR+1))
-            else
-				bars_n="<span class='bar-box sig-poor'>|</span>"
-				rssi_style_n="color: #ff453a; font-weight: bold;"
-				T_POOR=$((T_POOR+1))
-			fi
-			[ ${#name} -gt 20 ] && name="${name:0:20}"
-			[ ${#mac} -gt 17 ] && mac="${mac:0:17}"
-			[ ${#ip} -gt 15 ] && ip="${ip:0:15}"
-			[ ${#ssid} -gt 15 ] && ssid="${ssid:0:15}"
+			get_rssi_bars_style
             N_ROW="<tr class='$is_mac_new'>
 				<td style='text-align:left;'>$name$NODE_NUM</td>
 				<td>
 					<span class='m-val' data-sort='$mac'>$mac</span>
-					<span class='i-val' data-sort='$ip_s'>$ip</span>
+					<span class='i-val' data-sort='$ip_sort'>$ip</span>
 				</td>
 				<td data-sort='$rssi' class='rssi-container'>
-					$bars_n <span style='$rssi_style_n'>$rssi</span> $trend
+					$bars <span style='$rssi_style'>$rssi</span> $trend
 				</td>
-				<td data-sort='$lrd_val' style='$rssi_style_n; text-align:center;'>$lrd</td>
+				<td data-sort='$lrd_val' style='$rssi_style; text-align:center;'>$lrd</td>
 				<td>
 					<span class='s-val' data-sort='$ssid'>$ssid</span>
 					<span class='if-val' data-sort='$iface'>$iface</span>
