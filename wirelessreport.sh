@@ -1372,7 +1372,7 @@ ROW
 }
 
 parse_node() {
-    IFS='|' read -r _ mac rssi iface uptime SSID_NODE lrd_val lrd width _ <<ROW
+    IFS='|' read -r _ mac rssi iface uptime ssid lrd_val lrd width _ <<ROW
 $1
 ROW
 }
@@ -1634,16 +1634,16 @@ for iface in $IFACE_LIST; do
     ASSOCLIST=$(wl -i "$iface" assoclist 2>/dev/null)
     WL_ALIVE=0
     [ -n "$ASSOCLIST" ] && WL_ALIVE=1
-    SSID_NAME=$(nvram get "${iface}_ssid")
-	if [ -z "$SSID_NAME" ] || echo "$SSID_NAME" | grep -qE '^[0-9A-Fa-f]{16,}$'; then
+    ssid=$(nvram get "${iface}_ssid")
+	if [ -z "$ssid" ] || echo "$ssid" | grep -qE '^[0-9A-Fa-f]{16,}$'; then
 		idx=${iface#*.}
-		[ "$idx" != "$iface" ] && SSID_NAME=$(nvram get "gnp_name_$idx")
+		[ "$idx" != "$iface" ] && ssid=$(nvram get "gnp_name_$idx")
 	fi
-	[ -z "$SSID_NAME" ] && [ -n "$data_iface" ] && SSID_NAME=$(nvram get "${data_iface}_ssid")
-	[ -z "$SSID_NAME" ] && SSID_NAME=$(nvram get "${iface%.*}_ssid")
-	[ -z "$SSID_NAME" ] && [ -n "$data_iface" ] && SSID_NAME=$(nvram get "${data_iface%.*}_ssid")
-	[ "${#SSID_NAME}" -eq 32 ] && SSID_NAME="BACKHAUL"
-	[ -z "$SSID_NAME" ] && SSID_NAME="Wireless"
+	[ -z "$ssid" ] && [ -n "$data_iface" ] && ssid=$(nvram get "${data_iface}_ssid")
+	[ -z "$ssid" ] && ssid=$(nvram get "${iface%.*}_ssid")
+	[ -z "$ssid" ] && [ -n "$data_iface" ] && ssid=$(nvram get "${data_iface%.*}_ssid")
+	[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
+	[ -z "$ssid" ] && ssid="Wireless"
 	MAC_LIST=$(echo "$ASSOCLIST" | awk '{print $2}')
 	if [ -z "$MAC_LIST" ]; then
 		BRIDGE=$(brctl show 2>/dev/null | grep "$iface" | awk '{print $1}')
@@ -1737,7 +1737,7 @@ for iface in $IFACE_LIST; do
 		[ ${#name} -gt 20 ] && name="${name:0:20}"
 		[ ${#mac} -gt 17 ] && mac="${mac:0:17}"
 		[ ${#ip} -gt 15 ] && ip="${ip:0:15}"
-		[ ${#SSID_NAME} -gt 15 ] && SSID_NAME="${SSID_NAME:0:15}"
+		[ ${#ssid} -gt 15 ] && ssid="${ssid:0:15}"
 		M_ROW="<tr class='$is_mac_new'>
 			<td style='text-align:left;'>$name</td>
 			<td>
@@ -1749,7 +1749,7 @@ for iface in $IFACE_LIST; do
 			</td>
 			<td data-sort='$lrd_val' style='$rssi_style; text-align:center;'>$lrd</td>
 			<td>
-				<span class='s-val' data-sort='$SSID_NAME'>$SSID_NAME</span>
+				<span class='s-val' data-sort='$ssid'>$ssid</span>
 				<span class='if-val' data-sort='$iface'>$iface</span>
 			</td>
 			$band
@@ -1840,8 +1840,8 @@ for line in $SSH_NODES; do
 			ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
 			ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
 			{ [ -z "$name" ] || [ "$name" = "*" ]; } && name="$mac"
-			[ "${#SSID_NODE}" -eq 32 ] && SSID_NODE="BACKHAUL"
-			[ -z "$SSID_NODE" ] && SSID_NODE="Wireless"
+			[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
+			[ -z "$ssid" ] && ssid="Wireless"
 			[ -z "$rssi" ] || [ "$rssi" -eq 0 ] && rssi=-54
 			NODE_DEVICE_TOTAL=$((NODE_DEVICE_TOTAL + 1))
 			NODE_DEVICES=$((NODE_DEVICES + 1))
@@ -1882,7 +1882,7 @@ for line in $SSH_NODES; do
 			[ ${#name} -gt 20 ] && name="${name:0:20}"
 			[ ${#mac} -gt 17 ] && mac="${mac:0:17}"
 			[ ${#ip} -gt 15 ] && ip="${ip:0:15}"
-			[ ${#SSID_NODE} -gt 15 ] && SSID_NODE="${SSID_NODE:0:15}"
+			[ ${#ssid} -gt 15 ] && ssid="${ssid:0:15}"
             N_ROW="<tr class='$is_mac_new'>
 				<td style='text-align:left;'>$name$NODE_NUM</td>
 				<td>
@@ -1894,7 +1894,7 @@ for line in $SSH_NODES; do
 				</td>
 				<td data-sort='$lrd_val' style='$rssi_style_n; text-align:center;'>$lrd</td>
 				<td>
-					<span class='s-val' data-sort='$SSID_NODE'>$SSID_NODE</span>
+					<span class='s-val' data-sort='$ssid'>$ssid</span>
 					<span class='if-val' data-sort='$iface'>$iface</span>
 				</td>
 				$band
