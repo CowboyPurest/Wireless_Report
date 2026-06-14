@@ -1133,7 +1133,7 @@ get_mac_address() {
 		continue
 	fi
 	mac_swap="$mac_address"
-	get_name "$mac"
+	get_name "$mac_address"
 	mac="$mac_swap"
 	mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
 	if grep -Fqi "$mac_final" "$SEEN_MACS"; then
