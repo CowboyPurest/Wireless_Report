@@ -1835,9 +1835,9 @@ for line in $SSH_NODES; do
         N_UPTIMES="${N_UPTIMES}${N_UPTIMES:+$DOT}<span style='color:$NODE_COLOR;'>$N_UPTIME</span>"
 		N_BOOTS="${N_BOOTS}${N_BOOTS:+$DOT}<span style='color:$NODE_COLOR;'>$N_BOOT</span>"
         NODE_DEVICES=0
-		while read -r dline; do
-			[ -z "$dline" ] && continue
-			parse_node "$dline"
+		while read -r ssh_node_data; do
+			[ -z "$ssh_node_data" ] && continue
+			parse_node "$ssh_node_data"
 			[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
 			[ -z "$ssid" ] && ssid="Wireless"
 			get_mac_address
