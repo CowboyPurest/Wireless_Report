@@ -1132,9 +1132,7 @@ get_mac_address() {
 	if grep -Fqi "$mac_check" "$SEEN_MACS"; then
 		continue
 	fi
-	mac_swap="$mac_address"
 	get_name "$mac_address"
-	mac="$mac_swap"
 	mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
 	if grep -Fqi "$mac_final" "$SEEN_MACS"; then
 		continue
@@ -1144,6 +1142,7 @@ get_mac_address() {
 }
 
 get_name() {
+	mac="$mac_address"
 	# YazDHCP
 	if [ -f "$YAZ_CACHE" ]; then
 		local entry=$(grep -i "^$mac|" "$YAZ_CACHE")
@@ -1164,9 +1163,7 @@ get_name() {
 		local raw_parent=$(echo "$entry" | sed -n 's/.*"mlo_all_mac":"<\([^"]*\)".*/\1/p' | tr '[:lower:]' '[:upper:]')
 		local parent_mac=$(echo "$raw_parent" | cut -d'<' -f1)
 		if [ -n "$parent_mac" ] && [ "$parent_mac" != "$mac" ]; then
-			mac_swap="$parent_mac"
-		else
-			mac_swap="$mac_address"
+			mac="$parent_mac"
 		fi
 		name=$(echo "$entry" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
     fi
