@@ -30,7 +30,7 @@
 # shellcheck shell=sh disable=SC2086,SC2155,SC3043                              #                  
 #===============================================================================#
 
-SCRIPT_VERSION="1.9.0"
+SCRIPT_VERSION="1.9.1"
 INSTALL_DIR="/jffs/addons/wireless_report"
 REPORT_SCRIPT="$INSTALL_DIR/wirelessreport.sh"
 CONFIG="$INSTALL_DIR/webui.conf"
@@ -329,7 +329,8 @@ get_usb() {
 check_storage() {
     get_usb
 	echo -e "\n${BL}[*] Checking for Storage...${NC}"
-    if echo "$USB_PATH" | grep -q "/tmp/mnt/"; then
+    sleep 3
+	if echo "$USB_PATH" | grep -q "/tmp/mnt/"; then
         echo -e "\n${GR}[+] USB Found: Using $USB_PATH for reports and history.${NC}"
     else
         echo -e "\n${YL}[!] No USB detected: Using JFFS at $USB_PATH.${NC}"
@@ -723,7 +724,7 @@ set_temp_date() {
             1) NEW_UNIT="F" ;;
             2) NEW_UNIT="C" ;;
             3) NEW_UNIT="ISO" ;;
-            e|E) return ;;
+            e|E) sort -u -o "$CONFIG" "$CONFIG"; return ;;
             *) continue ;;
         esac
         sed -i '/REPORT_UNIT=/d' "$CONFIG"
@@ -762,7 +763,8 @@ set_nicknames() {
         read input_main
         case "$input_main" in
             e|E)
-                return
+                sort -u -o "$CONFIG" "$CONFIG"
+				return
                 ;;
             0)
                 echo -e "\n${BL}[+] Resetting to hardware defaults...${NC}\n"
@@ -884,7 +886,6 @@ set_options() {
                 echo -e "\n (${GR}0${NC}) disable (${GR}15${NC}) def (${GR}1440${NC}) max "
                 printf " ${BL}Enter alert interval in mins:${NC} "
                 read user_mins
-                sed -i '/^D_MINS=/d' "$CONFIG" # delete later
                 [ -z "$user_mins" ] && user_mins="15"
                 if echo "$user_mins" | grep -q '^[0-9]\+$'; then
                     if [ "$user_mins" -le 1440 ]; then
@@ -903,17 +904,48 @@ set_options() {
                 fi
                 pause 
                 ;;
-            4) 
-                if grep -q "RS_HIST=" "$CONFIG"; then
-                    [ "$RS_HIST" = "1" ] && NEW_TOOL="0" || NEW_TOOL="1"
-                    sed -i "s/RS_HIST=.*/RS_HIST=\"$NEW_TOOL\"/" "$CONFIG"
-                else
-                    echo 'RS_HIST="1"' >> "$CONFIG"
-					NEW_TOOL="1"
-                fi
-				rm -f "$HISTORY_DB"
-                RS_HIST="$NEW_TOOL"
-                ;;
+            4)
+				if grep -q "RS_HIST=" "$CONFIG"; then
+					[ "$RS_HIST" = "1" ] && RS_HIST="0" || RS_HIST="1"
+					sed -i "s/RS_HIST=.*/RS_HIST=\"$RS_HIST\"/" "$CONFIG"
+				else
+					echo 'RS_HIST="1"' >> "$CONFIG"
+					RS_HIST="1"
+				fi
+				if [ "$RS_HIST" = "1" ]; then
+					RS_HIST_DAYS=${RS_HIST_DAYS:-5}; RS_HIST_DATE=${RS_HIST_DATE:-0}
+					OLD_RS_HIST_DAYS=$RS_HIST_DAYS; OLD_RS_HIST_DATE=$RS_HIST_DATE
+					echo -ne "\nEnter history depth (5-15 days)  ${GR}[Current: $RS_HIST_DAYS]:${NC} "
+					read -r NEW_RS_HIST_DAYS
+					RS_HIST_DAYS=${NEW_RS_HIST_DAYS:-$RS_HIST_DAYS}
+					case "$RS_HIST_DAYS" in
+						[5-9] | 1[0-5]) ;;
+						*) RS_HIST_DAYS=5 ;;          
+					esac
+					echo -ne "Show timestamps (0=Off, 1=On)    ${GR}[Current: $RS_HIST_DATE]:${NC} "
+					read -r NEW_RS_HIST_DATE
+					RS_HIST_DATE=${NEW_RS_HIST_DATE:-$RS_HIST_DATE}
+					TEMP_DATE=${NEW_RS_HIST_DATE:-$RS_HIST_DATE}
+					case "$TEMP_DATE" in
+						1|0) RS_HIST_DATE="$TEMP_DATE" ;; 
+						*)   RS_HIST_DATE=0 ;;            
+					esac
+					for var in RS_HIST_DAYS RS_HIST_DATE; do
+						eval val=\$$var
+						grep -q "^$var=" "$CONFIG" && sed -i "s|^$var=.*|$var=\"$val\"|" "$CONFIG" || echo "$var=\"$val\"" >> "$CONFIG"
+					done
+					echo -e "\n${BL}==================================================${NC}\n"
+					echo -e "Configuration Updates Applied:\n"
+					echo -e "${BL}History Depth:${NC} [Old: $OLD_RS_HIST_DAYS] -> ${GR}[New: $RS_HIST_DAYS]${NC}"
+					echo -e "${BL}Date Setting:${NC}  [Old: $OLD_RS_HIST_DATE] -> ${GR}[New: $RS_HIST_DATE]${NC}"
+					echo -e "\n${BL}==================================================${NC}"
+					if [ "$RS_HIST_DATE" != "$OLD_RS_HIST_DATE" ]; then
+						rm -f "$HISTORY_DB"
+						echo -e "${BL}Status:${NC} RSSI history database cleared due to format change."
+					fi
+					pause
+				fi
+				;;
 				
 			u|U) 
                 echo -e "\n${BL}================= USB Check ======================${NC}"
@@ -935,7 +967,8 @@ set_options() {
                 continue
                 ;;
             e|E) 
-                return 
+                sort -u -o "$CONFIG" "$CONFIG"
+				return 
                 ;;
             *) 
                 continue 
@@ -1063,9 +1096,9 @@ get_trend() {
     local rssi_name="${3:-""}"
 	if [ "$RS_HIST" = "1" ]; then
 		local entry=$(grep -F "$mac|" "$HISTORY_CACHE" 2>/dev/null)
-		local history_str="${entry##*|}"
+		local history_str="${entry#*|}"
 		local prev_entry="${history_str##*,}"
-		local prev_rssi="${prev_entry%%:*}"
+		local prev_rssi="${prev_entry%%|*}"
 		local trend_icon=""
 		if [ -z "$prev_rssi" ]; then
 			trend_icon="<span class='trend-box'>•</span>"
@@ -1076,26 +1109,41 @@ get_trend() {
 		else
 			trend_icon="<span class='trend-box'>•</span>"
 		fi
-		local new_entry="$current_rssi:$rssi_name"
+		if [ "$RS_HIST_DATE" = "1" ]; then
+			local new_entry="$current_rssi|$rssi_name|$CUR_TIME"
+		else
+			local new_entry="$current_rssi|$rssi_name"
+		fi
 		local new_history="${history_str:+$history_str,}$new_entry"
 		local final_history="$new_history"
+		local num_commas=$(($RS_HIST_DAYS - 1))
+		local pattern=$(printf '*,%.0s' $(seq 1 $num_commas))
 		while [ "${final_history#*,}" != "$final_history" ]; do
 			local rest="${final_history#*,}"
-			[ "${rest#*,*,*,*,}" = "$rest" ] && break
+			if [ "${rest#$pattern}" = "$rest" ]; then
+				break
+			fi
 			final_history="$rest"
 		done
 		echo "$mac|$final_history" >> "$NEW_HISTORY"
 		local rssi_history=""
 		local IFS=','
 		for entry in $final_history; do
-			local rssi="${entry%%:*}"
-			local name="${entry#*:}"
-			local style=""
+			rssi="${entry%%|*}"
+			rest="${entry#*|}"
+			name="${rest%%|*}"
+			time="${rest#*|}"
+			[[ "$time" == "$rest" ]] && time=""
 			if [ "$rssi" -ge -50 ]; then style="color: #30d158; font-weight: bold;"
 			elif [ "$rssi" -ge -60 ]; then style="color: #64d2ff; font-weight: bold;"
 			elif [ "$rssi" -ge -70 ]; then style="color: #ffd60a; font-weight: bold;"
 			else style="color: #ff453a; font-weight: bold;"; fi
-			rssi_history="${rssi_history}${rssi_history:+<br>}<span style='$style'>$rssi [$name]</span>"
+			local display_time="${time:+ $time}"
+			if [ "$RS_HIST_DATE" = "1" ]; then
+				rssi_history="${rssi_history}${rssi_history:+<br>}<span style='$style'>$rssi [$name] $time</span>"
+			else	
+				rssi_history="${rssi_history}${rssi_history:+<br>}<span style='$style'>$rssi [$name]</span>"
+			fi
 		done
 		unset IFS
 		echo -n "$trend_icon<span class='rssi-tooltip'>$rssi_history</span>"
@@ -1201,7 +1249,6 @@ get_ip() {
 	ip="${ip%% *}"
     ip="${ip%%<*}"
     ip_sort=$(ip_to_num "$ip")
-	# N=$((N + 1)); echo "[$N] DEBUG: IP $ip -> MAC $mac" >&2
 }
 
 check_new_mac() {
@@ -1868,13 +1915,13 @@ if [ "$NUMBERED_NODE" -ge 1 ]; then
 else
     TOTAL_DEVICES="Devices: <span class='val-blue'>$MAIN_DEVICE_TOTAL</span>"
 fi
+do_runtime; header_box
+JS_DIFF="${DIFF:-5.00}"
 mv "$NEW_HISTORY" "$HISTORY_DB"
-do_runtime
 
 #=================#
 #  Generate HTML  #
 #=================#
-header_box; JS_DIFF="${DIFF:-5.00}"
 /usr/bin/printf '\xEF\xBB\xBF' > "$WEB_PAGE"
 cat <<HTML >> "$WEB_PAGE"
 <!DOCTYPE html>
@@ -1962,10 +2009,11 @@ cat <<HTML >> "$WEB_PAGE"
 	.row-break { flex-basis: 100%; height: 0; margin: 0; }
 	sup { font-size: 0.6em; margin-left: 2px; }
 	/* RSSI History Tooltip */
-	.rssi-container { position: relative; cursor: help; }
-	.rssi-tooltip { visibility: hidden; position: absolute; z-index: 100; bottom: 125%; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 10px; border-radius: 8px; border: 1px solid #0096ff; opacity: 0; transition: opacity .3s; font: 1.1em monospace; white-space: pre; width: max-content; text-align: left; }
+	.rssi-container { position: relative; cursor: help; vertical-align: middle; }
+	.rssi-tooltip { visibility: hidden; position: fixed; z-index: 99999; background: #000; color: #fff; padding: 10px; border-radius: 8px; border: 1px solid #0096ff; opacity: 0; transition: opacity .3s; font: 1.1em monospace; white-space: pre; width: max-content; pointer-events: none; text-align: left !important;}
 	.rssi-container:hover .rssi-tooltip { visibility: visible; opacity: 1; }
 	/* RSSI History Tooltip */
+	
 </style>
 <script>
 function initial() {
@@ -2191,6 +2239,7 @@ function closePopout() {
     document.getElementById('popoutModal').style.display = 'none'; 
     localStorage.setItem('wifiReportPopoutOpen', 'false');
 }
+/* Right-Click Node-Hostnames */
 document.addEventListener('contextmenu', function(e) {
     var h = e.target.closest('th');
     if (h && Array.prototype.indexOf.call(h.parentNode.children, h) === 0) {
@@ -2203,6 +2252,39 @@ document.addEventListener('contextmenu', function(e) {
         sortTable(0, table.id, false, false); 
     }
 });
+/* Right-Click Node-Hostnames */
+/* RSSI History Tooltip */
+document.addEventListener('mouseover', function(e) {
+    const container = e.target.closest('.rssi-container');
+    if (container) {
+        const tooltip = container.querySelector('.rssi-tooltip');
+        if (tooltip) {
+            tooltip.style.visibility = 'visible';
+            tooltip.style.opacity = '1';
+        }
+    }
+});
+document.addEventListener('mousemove', function(e) {
+    const container = e.target.closest('.rssi-container');
+    if (container) {
+        const tooltip = container.querySelector('.rssi-tooltip');
+        if (tooltip) {
+            tooltip.style.left = (e.clientX + 15) + 'px';
+            tooltip.style.top = (e.clientY - tooltip.offsetHeight - 15) + 'px';
+        }
+    }
+});
+document.addEventListener('mouseout', function(e) {
+    const container = e.target.closest('.rssi-container');
+    if (container) {
+        const tooltip = container.querySelector('.rssi-tooltip');
+        if (tooltip) {
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.opacity = '0';
+        }
+    }
+});
+/* RSSI History Tooltip */
 </script>
 </head>
 <body onload="initial();">
