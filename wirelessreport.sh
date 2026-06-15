@@ -294,7 +294,7 @@ ScriptUpdateFromAMTM() {
     fi
 	amtm=1
     if do_update; then
-        echo -e "\n${AMBL} wr${NC}${GR} [✓] Wireless Report successfully updated${NC}"
+        echo -e "\n\n${AMBL} wr${NC}${GR} [✓] Wireless Report successfully updated${NC}\n"
 		return 0
     else
         return 1
