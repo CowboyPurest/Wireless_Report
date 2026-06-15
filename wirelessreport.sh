@@ -271,7 +271,7 @@ do_install() {
 do_update() {
     local prefix="\n"
     if [ "$amtm" -eq 1 ] 2>/dev/null; then
-        prefix="\n${AMBL} wr${NC} "
+        prefix="\n${GN_BG} wr${NC} "
     fi
     echo -e "${prefix}${GR}[+] Downloading latest version (v$REMOTE_VER)${NC}"
     if curl -sfL --retry 3 "$GITHUB" -o "$REPORT_SCRIPT"; then
@@ -294,7 +294,7 @@ ScriptUpdateFromAMTM() {
     fi
 	amtm=1
     if do_update; then
-        echo -e "\n\n${AMBL} wr${NC}${GR} [✓] Wireless Report successfully updated${NC}\n"
+        echo -e "\n\n${GN_BG} wr${NC}${GR} [✓] Wireless Report successfully updated${NC}\n"
 		return 0
     else
         return 1
@@ -2015,10 +2015,9 @@ cat <<HTML >> "$WEB_PAGE"
 	sup { font-size: 0.6em; margin-left: 2px; }
 	/* RSSI History Tooltip */
 	.rssi-container { position: relative; cursor: help; vertical-align: middle; }
-	.rssi-tooltip { visibility: hidden; position: fixed; z-index: 99999; background: #000; color: #fff; padding: 10px; border-radius: 8px; border: 1px solid #0096ff; opacity: 0; transition: opacity .3s; font: 1.1em monospace; white-space: pre; width: max-content; pointer-events: none; text-align: left !important;}
+	.rssi-tooltip { visibility: hidden; position: fixed; z-index: 99999; background: #000; color: #fff; padding: 10px; border-radius: 8px; border: 1px solid #0096ff; opacity: 0; transition: opacity .3s; font: 1.1em monospace; white-space: pre; width: max-content; pointer-events: none; text-align: left !important; }
 	.rssi-container:hover .rssi-tooltip { visibility: visible; opacity: 1; }
 	/* RSSI History Tooltip */
-	
 </style>
 <script>
 function initial() {
