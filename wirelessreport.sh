@@ -978,17 +978,19 @@ set_options() {
 }
 
 ScriptUpdateFromAMTM() {
-    if ! "$doScriptUpdateFromAMTM"
-    then
+    if ! "$doScriptUpdateFromAMTM"; then
         printf "Automatic updates via AMTM are currently disabled.\n\n"
         return 1
     fi
-    if [ $# -gt 0 ] && [ "$1" = "check" ]
-    then return 0
+    if [ "$1" = "check" ]; then
+        return 0
     fi
-    do_update
-	echo -e "\n${GR}[✓] Wireless Report successfully updated${NC}"
-    return "$?"
+    if do_update; then
+        echo -e "\n${GR}[✓] Wireless Report successfully updated${NC}"
+        return 0
+    else
+        return 1
+    fi
 }
 
 restart_httpd() {
