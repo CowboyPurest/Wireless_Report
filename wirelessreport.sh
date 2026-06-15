@@ -52,7 +52,7 @@ GITHUB="https://raw.githubusercontent.com/JB1366/Wireless_Report/main/wirelessre
 REMOTE_VER=$(curl -sfL --retry 3 "$GITHUB" | grep "SCRIPT_VERSION=" | head -n 1 | cut -d'"' -f2 | tr -cd '0-9.')
 [ -f "/root/.ssh/id_dropbear" ] && SSH_KEY="/root/.ssh/id_dropbear" || SSH_KEY=""
 BL='\033[38;5;39m'; GR='\033[0;32m'; NC='\033[0m'; RD='\033[0;31m'
-UL='\033[4m'; WH='\e[1;37m'; YL='\033[0;33m'
+UL='\033[4m'; WH='\e[1;37m'; YL='\033[0;33m'; AMBL="\e[44;37;1m"
 NODE_USER=$(nvram get http_username)
 SSH_PORT=$(nvram get sshd_port)
 [ -z "$SSH_PORT" ] && SSH_PORT=22
@@ -269,12 +269,11 @@ do_install() {
 }
 
 do_update() {
-    if [ "$amtm" -eq 1 ]; then
-		prefix=" wr "
-	else
-		prefix="\n"
-	fi
-	echo -e "${prefix}${GR}[+] Downloading latest version (v$REMOTE_VER)${NC}"
+    local prefix="\n"
+    if [ "$amtm" -eq 1 ] 2>/dev/null; then
+        prefix="\n${AMBL} wr ${NC}"
+    fi
+    echo -e "${prefix}${GR}[+] Downloading latest version (v$REMOTE_VER)${NC}"
     if curl -sfL --retry 3 "$GITHUB" -o "$REPORT_SCRIPT"; then
         chmod +x "$REPORT_SCRIPT" 2>/dev/null
         sleep 3
@@ -295,7 +294,7 @@ ScriptUpdateFromAMTM() {
     fi
 	amtm=1
     if do_update; then
-        echo -e " wr ${GR}[✓] Wireless Report successfully updated${NC}"
+        echo -e "\n${AMBL} wr ${NC}${GR}[✓] Wireless Report successfully updated${NC}"
 		return 0
     else
         return 1
