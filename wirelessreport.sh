@@ -269,13 +269,34 @@ do_install() {
 }
 
 do_update() {
-    echo -e "\n${GR}[+] Downloading latest version (v$REMOTE_VER)${NC}"
+    if [ "$amtm" -eq 1 ]; then
+		prefix=" wr "
+	else
+		prefix="\n"
+	fi
+	echo -e "${prefix}{GR}[+] Downloading latest version (v$REMOTE_VER)${NC}"
     if curl -sfL --retry 3 "$GITHUB" -o "$REPORT_SCRIPT"; then
         chmod +x "$REPORT_SCRIPT" 2>/dev/null
-        sleep 3
-		return 0
+        return 0
     else
         echo -e "${RD}[!] Download failed. Sticking with current version.${NC}"
+        return 1
+    fi
+}
+
+ScriptUpdateFromAMTM() {
+    if ! "$doScriptUpdateFromAMTM"; then
+        printf "Automatic updates via AMTM are currently disabled.\n\n"
+        return 1
+    fi
+    if [ "$1" = "check" ]; then
+        return 0
+    fi
+	amtm=1
+    if do_update; then
+        echo -e " wr ${GR}[✓] Wireless Report successfully updated${NC}"
+		return 0
+    else
         return 1
     fi
 }
@@ -976,22 +997,6 @@ set_options() {
                 ;;
         esac
     done
-}
-
-ScriptUpdateFromAMTM() {
-    if ! "$doScriptUpdateFromAMTM"; then
-        printf "Automatic updates via AMTM are currently disabled.\n\n"
-        return 1
-    fi
-    if [ "$1" = "check" ]; then
-        return 0
-    fi
-    if do_update; then
-        echo -e "\n${GR}[✓] Wireless Report successfully updated${NC}"
-        return 0
-    else
-        return 1
-    fi
 }
 
 restart_httpd() {
