@@ -57,7 +57,7 @@ NODE_USER=$(nvram get http_username)
 SSH_PORT=$(nvram get sshd_port)
 [ -z "$SSH_PORT" ] && SSH_PORT=22
 [ -f "$CONFIG" ] && . "$CONFIG"
-doScriptUpdateFromAMTM=true
+doScriptUpdateFromAMTM=false
 unset LD_LIBRARY_PATH
 export PATH="/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
@@ -271,9 +271,9 @@ do_install() {
 do_update() {
     local prefix="\n"
     if [ "$amtm" -eq 1 ] 2>/dev/null; then
-        prefix="\n${AMBL} wr${NC}"
+        prefix="\n${AMBL} wr ${NC}"
     fi
-    echo -e "${prefix}${GR} [+] Downloading latest version (v$REMOTE_VER)${NC}"
+    echo -e "${prefix}${GR}[+] Downloading latest version (v$REMOTE_VER)${NC}"
     if curl -sfL --retry 3 "$GITHUB" -o "$REPORT_SCRIPT"; then
         chmod +x "$REPORT_SCRIPT" 2>/dev/null
         sleep 3
@@ -294,7 +294,7 @@ ScriptUpdateFromAMTM() {
     fi
 	amtm=1
     if do_update; then
-        echo -e "\n\n${AMBL} wr${NC}${GR} [✓] Wireless Report successfully updated${NC}"
+        echo -e "\n${AMBL} wr ${NC}${GR}[✓] Wireless Report successfully updated${NC}"
 		return 0
     else
         return 1
