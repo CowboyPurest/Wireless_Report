@@ -274,10 +274,11 @@ do_update() {
 	else
 		prefix="\n"
 	fi
-	echo -e "${prefix}{GR}[+] Downloading latest version (v$REMOTE_VER)${NC}"
+	echo -e "${prefix}${GR}[+] Downloading latest version (v$REMOTE_VER)${NC}"
     if curl -sfL --retry 3 "$GITHUB" -o "$REPORT_SCRIPT"; then
         chmod +x "$REPORT_SCRIPT" 2>/dev/null
-        return 0
+        sleep 3
+		return 0
     else
         echo -e "${RD}[!] Download failed. Sticking with current version.${NC}"
         return 1
