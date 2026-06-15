@@ -57,7 +57,7 @@ NODE_USER=$(nvram get http_username)
 SSH_PORT=$(nvram get sshd_port)
 [ -z "$SSH_PORT" ] && SSH_PORT=22
 [ -f "$CONFIG" ] && . "$CONFIG"
-doScriptUpdateFromAMTM=false
+doScriptUpdateFromAMTM=true
 unset LD_LIBRARY_PATH
 export PATH="/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
