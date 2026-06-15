@@ -52,7 +52,7 @@ GITHUB="https://raw.githubusercontent.com/JB1366/Wireless_Report/main/wirelessre
 REMOTE_VER=$(curl -sfL --retry 3 "$GITHUB" | grep "SCRIPT_VERSION=" | head -n 1 | cut -d'"' -f2 | tr -cd '0-9.')
 [ -f "/root/.ssh/id_dropbear" ] && SSH_KEY="/root/.ssh/id_dropbear" || SSH_KEY=""
 BL='\033[38;5;39m'; GR='\033[0;32m'; NC='\033[0m'; RD='\033[0;31m'
-UL='\033[4m'; WH='\e[1;37m'; YL='\033[0;33m'; AMBL="\e[44;37;1m"
+UL='\033[4m'; WH='\e[1;37m'; YL='\033[0;33m'; GN_BG="\e[42;30;1m"
 NODE_USER=$(nvram get http_username)
 SSH_PORT=$(nvram get sshd_port)
 [ -z "$SSH_PORT" ] && SSH_PORT=22
