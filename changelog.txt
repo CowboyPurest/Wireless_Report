@@ -13,16 +13,16 @@ v1.8.4-minor fixes for mac address issues.
 v1.8.3-minor update to fix mac-address bug.
 V1.8.2-minor changes
 v1.8.1-minor install updates, seperated SSH Key Setup from Node Authentication.
-v1.8.0-minor adjustments, added toggle, enhanced runtime.
+v1.8.0-minor adjustments, enhanced runtime.
 v1.7.9-AntiGravity script optimizations.
 v1.7.8-added support for BT8.
 v1.7.7-backhaul fixes.
-v1.7.6-add Toggle Wireless Backhaul On/Off (option #5).
+v1.7.6-added Wireless Backhaul On/Off (option #5).
 v1.7.5-removed RSSI Kick Threshold. enhanced refresh button-hover.
-v1.7.4-runtime toggle adjustment.
-v1.7.3-added runtime toggle in install menu. also added location option to nicknames.
+v1.7.4-runtime adjustment.
+v1.7.3-added runtime option in install menu. also added location option to nicknames.
 v1.7.2-minor updates to Node Authentication.
-v1.7.1-New Node Authentication tool! You can now sync or repair node connections directly from the main menu (Option 6).
+v1.7.1-New Node Authentication tool! You can now sync node connections directly from the main menu (Option 6).
 v1.7.0-New Automated Password-less SSH Key Setup. Simplifies node authentication with a streamlined setup.
 v1.6.1-enhanced runtimes.
 v1.6.0-adjusted tab-mount, added runtime to refresh button.
