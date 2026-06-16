@@ -1497,6 +1497,17 @@ get_row() {
 	ALL_ROWS="${ALL_ROWS}${ROW}${NL}"
 }
 
+final_chk() {
+	[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
+	[ -z "$ssid" ] && ssid="Wireless"
+	if [ "$RSSIM" = "1" ]; then
+        return
+    fi
+    if [ "$rssi" -ge 0 ] && [ "$rssi" -le 1 ]; then
+        rssi=-54
+    fi
+}
+
 check_qca_up() {
 	if [ "$uptime" = "UP_QCA" ]; then case "$iface" in *ath*)
 		NOW=$(date +%s)
@@ -1795,8 +1806,6 @@ for iface in $IFACE_LIST; do
 	[ -z "$ssid" ] && [ -n "$data_iface" ] && ssid=$(nvram get "${data_iface}_ssid")
 	[ -z "$ssid" ] && ssid=$(nvram get "${iface%.*}_ssid")
 	[ -z "$ssid" ] && [ -n "$data_iface" ] && ssid=$(nvram get "${data_iface%.*}_ssid")
-	[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
-	[ -z "$ssid" ] && ssid="Wireless"
 	MAC_LIST=$(echo "$ASSOCLIST" | awk '{print $2}')
 	if [ -z "$MAC_LIST" ]; then
 		BRIDGE=$(brctl show 2>/dev/null | grep "$iface" | awk '{print $1}')
@@ -1838,6 +1847,7 @@ for iface in $IFACE_LIST; do
 		[ -n "$V1" ] && [ -n "$V2" ] && [ "$V1" -gt "$V2" ] 2>/dev/null && { T=$rx_disp; rx_disp=$tx_disp; tx_disp=$T; lrd="$rx_disp / $tx_disp"; }
 		[ "$rx_disp" = "---" ] && [ "$tx_disp" = "---" ] && lrd="---"
 		lrd_val=$(printf "%04d" "${tx_disp:-0}")
+		final_chk
 		is_mac_new=$(check_new_mac "$mac")
 		trend=$(get_trend "$mac" "$rssi" "$MAIN_NAME")
 		band=$(get_band "$iface" "$width" "$ALIAS")
@@ -1897,10 +1907,9 @@ for line in $SSH_NODES; do
 		while read -r ssh_node_data; do
 			[ -z "$ssh_node_data" ] && continue
 			parse_node "$ssh_node_data"
-			[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
-			[ -z "$ssid" ] && ssid="Wireless"
 			get_mac_address
 			get_ip
+			final_chk
             is_mac_new=$(check_new_mac "$mac")
 			trend=$(get_trend "$mac" "$rssi" "$NODE_NAME")
 			band=$(get_band "$iface" "$width" "$ALIAS")
