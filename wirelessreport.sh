@@ -1124,14 +1124,10 @@ get_trend() {
 		fi
 		local new_history="${history_str:+$history_str,}$new_entry"
 		local final_history="$new_history"
-		local num_commas=$(($RS_HIST_DAYS - 1))
-		local pattern=$(printf '*,%.0s' $(seq 1 $num_commas))
-		while [ "${final_history#*,}" != "$final_history" ]; do
-			local rest="${final_history#*,}"
-			if [ "${rest#$pattern}" = "$rest" ]; then
-				break
-			fi
-			final_history="$rest"
+		local count=$(( $(echo "$final_history" | tr -cd ',' | wc -c) + 1 ))
+		while [ "$count" -gt "$RS_HIST_DAYS" ]; do
+			final_history="${final_history#*,}"
+			count=$((count - 1))
 		done
 		echo "$mac|$final_history" >> "$NEW_HISTORY"
 		local rssi_history=""
