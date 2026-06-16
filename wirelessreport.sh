@@ -2174,19 +2174,34 @@ function sortTable(n, tId, keepDir, forceDesc) {
         var cellA = a.cells[n];
         var cellB = b.cells[n];
         if (n === 0) {
-            var txtA = cellA.innerText.trim();
-            var txtB = cellB.innerText.trim();
-            var isRightClick = (window.event && window.event.type === 'contextmenu');
-            var isNodeModeSaved = (localStorage.getItem('savedSortNodeMode_' + tId) === 'true');
-            if (isRightClick || (isNodeModeSaved && n === 0)) {
-                var nodeA = txtA.slice(-1);
-                var nodeB = txtB.slice(-1);
-                if (nodeA !== nodeB) {
-                    return dir === "asc" ? nodeA.localeCompare(nodeB) : nodeB.localeCompare(nodeA);
-                }
-            }
-            return dir === "asc" ? txtA.localeCompare(txtB) : txtB.localeCompare(txtA);
-        }
+			// Helper to extract the node number safely from HTML
+			var getNodeNum = function(cell) {
+				var match = cell.innerHTML.match(/<sup>(\d+)<\/sup>/);
+				return match ? parseInt(match[1]) : 0;
+			};
+			
+			// Helper to get clean text for secondary sorting (hostname)
+			var getCleanTxt = function(cell) {
+				return cell.innerText.trim();
+			};
+
+			var isRightClick = (window.event && window.event.type === 'contextmenu');
+			var isNodeModeSaved = (localStorage.getItem('savedSortNodeMode_' + tId) === 'true');
+
+			if (isRightClick || isNodeModeSaved) {
+				var nodeA = getNodeNum(cellA);
+				var nodeB = getNodeNum(cellB);
+				
+				if (nodeA !== nodeB) {
+					return dir === "asc" ? nodeA - nodeB : nodeB - nodeA;
+				}
+			}
+			
+			// Fallback/Secondary sort: By Hostname text
+			var txtA = getCleanTxt(cellA);
+			var txtB = getCleanTxt(cellB);
+			return dir === "asc" ? txtA.localeCompare(txtB) : txtB.localeCompare(txtA);
+		}
         if (n === 1) {
             var sel = table.classList.contains('show-ip') ? '.i-val' : '.m-val';
             valA = cellA.querySelector(sel).getAttribute('data-sort');
