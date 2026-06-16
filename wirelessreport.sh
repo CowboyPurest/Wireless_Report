@@ -30,7 +30,7 @@
 # shellcheck shell=sh disable=SC2086,SC2155,SC3043                              #                  
 #===============================================================================#
 
-SCRIPT_VERSION="1.9.1"
+SCRIPT_VERSION="1.9.2"
 INSTALL_DIR="/jffs/addons/wireless_report"
 REPORT_SCRIPT="$INSTALL_DIR/wirelessreport.sh"
 CONFIG="$INSTALL_DIR/webui.conf"
@@ -941,13 +941,12 @@ set_options() {
 				if [ "$RS_HIST" = "1" ]; then
 					RS_HIST_DAYS=${RS_HIST_DAYS:-5}; RS_HIST_DATE=${RS_HIST_DATE:-0}
 					OLD_RS_HIST_DAYS=$RS_HIST_DAYS; OLD_RS_HIST_DATE=$RS_HIST_DATE
-					echo -ne "\nEnter history depth (5-15)    ${GR}[Current: $RS_HIST_DAYS]:${NC} "
+					echo -ne "\nEnter history depth (5-20)    ${GR}[Current: $RS_HIST_DAYS]:${NC} "
 					read -r NEW_RS_HIST_DAYS
 					RS_HIST_DAYS=${NEW_RS_HIST_DAYS:-$RS_HIST_DAYS}
-					case "$RS_HIST_DAYS" in
-						[5-9] | 1[0-5]) ;;
-						*) RS_HIST_DAYS=5 ;;          
-					esac
+					if [ "$RS_HIST_DAYS" -lt 5 ] || [ "$RS_HIST_DAYS" -gt 20 ]; then
+						RS_HIST_DAYS=5
+					fi
 					echo -ne "Show timestamps (0=Off, 1=On) ${GR}[Current: $RS_HIST_DATE]:${NC} "
 					read -r NEW_RS_HIST_DATE
 					RS_HIST_DATE=${NEW_RS_HIST_DATE:-$RS_HIST_DATE}
@@ -1107,6 +1106,7 @@ get_trend() {
     local current_rssi="$2"
     local rssi_name="${3:-""}"
 	if [ "$RS_HIST" = "1" ]; then
+		local rband=$(get_band "$iface" "$width" "$ALIAS" "raw")
 		local entry=$(grep -F "$mac|" "$HISTORY_CACHE" 2>/dev/null)
 		local history_str="${entry#*|}"
 		local prev_entry="${history_str##*,}"
@@ -1122,10 +1122,10 @@ get_trend() {
 			trend_icon="<span class='trend-box'>•</span>"
 		fi
 		if [ "$RS_HIST_DATE" = "1" ]; then
-			local new_entry="$current_rssi|$rssi_name|$CUR_TIME"
-		else
-			local new_entry="$current_rssi|$rssi_name"
-		fi
+            local new_entry="$current_rssi|$rssi_name|$rband|$CUR_TIME"
+        else
+            local new_entry="$current_rssi|$rssi_name|$rband"
+        fi
 		local new_history="${history_str:+$history_str,}$new_entry"
 		local final_history="$new_history"
 		local count=$(( $(echo "$final_history" | tr -cd ',' | wc -c) + 1 ))
@@ -1140,18 +1140,20 @@ get_trend() {
 			rssi="${entry%%|*}"
 			rest="${entry#*|}"
 			name="${rest%%|*}"
-			time="${rest#*|}"
+			rest="${rest#*|}"
+			if [ "$RS_HIST_DATE" = "1" ]; then
+                rband_val="${rest%%|*}"
+                time="${rest#*|}"
+            else
+                rband_val="$rest"
+                time=""
+            fi
 			[[ "$time" == "$rest" ]] && time=""
 			if [ "$rssi" -ge -50 ]; then style="color: #30d158; font-weight: bold;"
 			elif [ "$rssi" -ge -60 ]; then style="color: #64d2ff; font-weight: bold;"
 			elif [ "$rssi" -ge -70 ]; then style="color: #ffd60a; font-weight: bold;"
 			else style="color: #ff453a; font-weight: bold;"; fi
-			local display_time="${time:+ $time}"
-			if [ "$RS_HIST_DATE" = "1" ]; then
-				rssi_history="${rssi_history}${rssi_history:+<br>}<span style='$style'>$rssi [$name] $time</span>"
-			else	
-				rssi_history="${rssi_history}${rssi_history:+<br>}<span style='$style'>$rssi [$name]</span>"
-			fi
+			rssi_history="${rssi_history}${rssi_history:+<br>}<span style='$style'>$rssi [$name] [$rband_val]${time:+ $time}</span>"
 		done
 		unset IFS
 		echo -n "$trend_icon<span class='rssi-tooltip'>$rssi_history</span>"
@@ -1378,13 +1380,17 @@ get_band() {
     fi
 	
     # Band UI Renderer
-    local class="" sort="0"
-    case "$Label" in
-        2.4G*)  class="text-24"; sort="2.4" ;;
-        5G*)    class="text-5g"; sort="5"   ;;
-        6G*)    class="text-6g"; sort="6"   ;;
-    esac
-    echo "<td data-sort='$sort' style='text-align:center;'><span class='$class'>$Label$w_text</span></td>"
+	local class="" sort="0"
+	case "$Label" in
+		2.4G*)  class="text-24"; sort="2.4" ;;
+		5G*)    class="text-5g"; sort="5"   ;;
+		6G*)    class="text-6g"; sort="6"   ;;
+	esac
+	if [ "$4" = "raw" ]; then
+        echo "$Label"
+    else
+		echo "<td data-sort='$sort' style='text-align:center;'><span class='$class'>$Label$w_text</span></td>"
+	fi
 }
 		
 fmt_uptime() {
@@ -1749,8 +1755,8 @@ M_BOOT=$(date -d @$(( $(date +%s) - $(cut -d. -f1 /proc/uptime) )) "$D_FMT")
 MAIN_PFX=$(nvram get lan_hwaddr | cut -c 3-14 | tr '[:lower:]' '[:upper:]')
 NODE_PFX=$(nvram get cfg_relist | sed 's/[<>]/ /g' | tr ' ' '\n' | grep ":" | cut -c 3-14 | sort -u | tr '[:lower:]' '[:upper:]')
 ROUTER_IP=$(nvram get lan_ipaddr)
-M_ALIAS=$(nvram get cfg_device_list | sed 's/</\n/g' | grep ">$ROUTER_IP>" | awk -F'>' '{print $1}')
-MAIN_NAME="${MAIN_NICK:-${M_ALIAS:-"Main Router"}}"
+ALIAS=$(nvram get cfg_device_list | sed 's/</\n/g' | grep ">$ROUTER_IP>" | awk -F'>' '{print $1}')
+MAIN_NAME="${MAIN_NICK:-${ALIAS:-"Main Router"}}"
 [ ${#MAIN_NAME} -gt 25 ] && MAIN_NAME="${MAIN_NAME:0:25}"
 MAIN_LABEL="<span class='router-branding'>$MAIN_NAME</span>"
 > "$SEEN_MACS"; > "$NEW_HISTORY"
@@ -1833,7 +1839,7 @@ for iface in $IFACE_LIST; do
 		lrd_val=$(printf "%04d" "${tx_disp:-0}")
 		is_mac_new=$(check_new_mac "$mac")
 		trend=$(get_trend "$mac" "$rssi" "$MAIN_NAME")
-		band=$(get_band "$iface" "$width" "$M_ALIAS")
+		band=$(get_band "$iface" "$width" "$ALIAS")
 		uptime=$(fmt_uptime "$uptime")
 		get_bars_rssi_style
 		get_max_column
