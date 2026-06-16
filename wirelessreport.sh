@@ -1201,6 +1201,7 @@ get_mac_address() {
 
 get_name() {
 	mac="$mac_address"
+	name=""
 	# YazDHCP
 	if [ -f "$YAZ_CACHE" ]; then
 		local entry=$(grep -i "^$mac|" "$YAZ_CACHE")
@@ -2174,20 +2175,15 @@ function sortTable(n, tId, keepDir, forceDesc) {
         var cellA = a.cells[n];
         var cellB = b.cells[n];
         if (n === 0) {
-			// Helper to extract the node number safely from HTML
 			var getNodeNum = function(cell) {
 				var match = cell.innerHTML.match(/<sup>(\d+)<\/sup>/);
 				return match ? parseInt(match[1]) : 0;
 			};
-			
-			// Helper to get clean text for secondary sorting (hostname)
 			var getCleanTxt = function(cell) {
 				return cell.innerText.trim();
 			};
-
 			var isRightClick = (window.event && window.event.type === 'contextmenu');
 			var isNodeModeSaved = (localStorage.getItem('savedSortNodeMode_' + tId) === 'true');
-
 			if (isRightClick || isNodeModeSaved) {
 				var nodeA = getNodeNum(cellA);
 				var nodeB = getNodeNum(cellB);
@@ -2196,8 +2192,6 @@ function sortTable(n, tId, keepDir, forceDesc) {
 					return dir === "asc" ? nodeA - nodeB : nodeB - nodeA;
 				}
 			}
-			
-			// Fallback/Secondary sort: By Hostname text
 			var txtA = getCleanTxt(cellA);
 			var txtB = getCleanTxt(cellB);
 			return dir === "asc" ? txtA.localeCompare(txtB) : txtB.localeCompare(txtA);
