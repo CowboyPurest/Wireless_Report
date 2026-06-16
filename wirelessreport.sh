@@ -205,6 +205,7 @@ do_install() {
         fi
 		if do_update; then
             echo -e "\n${GR}[✓] Wireless Report successfully installed.${NC}"
+			logger -p user.info -t "Wireless_Report" "(v$REMOTE_VER) successfully installed."
 			restart_httpd
             pause
             return 0
@@ -256,6 +257,7 @@ do_install() {
         chmod +x "$SE_FILE"
         restart_httpd
 		install=""
+		logger -p user.info -t "Wireless_Report" "(v$REMOTE_VER) successfully installed."
         echo -e "\n${GR}[✓] SUCCESS: Installation complete!${NC}"
 		echo -e "\n${YL}[i] To access Report, navigate to Advanced Settings > Wireless ${NC}"
 		echo -e "${YL}    in the ASUS WebGUI and select the Wireless Report tab on the far right.${NC}"
@@ -295,6 +297,7 @@ ScriptUpdateFromAMTM() {
 	amtm=1
     if do_update; then
         echo -e "\n\n${GN_BG} wr${NC}${GR} [✓] Wireless Report successfully updated${NC}\n"
+		logger -p user.info -t "Wireless_Report" "AMTM Update: (v$REMOTE_VER) successfully installed."
 		return 0
     else
         return 1
@@ -718,6 +721,7 @@ do_uninstall() {
 	rm -rf "$INSTALL_DIR" 2>/dev/null
 	rm -rf "$WEB_PAGE" 2>/dev/null
 	case "$USB_PATH" in *wirelessreport*) rm -rf "$USB_PATH" 2>/dev/null ;; esac
+	logger -p user.info -t "Wireless_Report" "(v$LOCAL_VER) successfully uninstalled."
 	echo -e "${GR}[+] System cleaned. SSH Keys and Fingerprints preserved in /jffs/.ssh${NC}\n"
 	echo -e "${GR}[+] Success: Wireless Report uninstalled.${NC}"
 	pause
