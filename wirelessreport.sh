@@ -1205,21 +1205,18 @@ get_mac_address() {
 	mac_address=$(echo "$mac" | tr '[:lower:]' '[:upper:]')
 	mac_prefix="${mac_address#??}"
 	mac_prefix="${mac_prefix%???}"
-	is_backhaul="no"
-	is_node_pfx=0
+	is_node_pfx=0; bh="no"
 	case "$NODE_PFX" in *"$mac_prefix"*) is_node_pfx=1 ;; esac
-	if [ "$BACKHAUL" = "yes" ] && ([ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]); then
-		is_backhaul="yes"
+	if [ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]; then
+		    [ "$BACKHAUL" != "yes" ] && return 1
+			bh="yes"
 	fi
-	if [ "$BACKHAUL" != "yes" ] && ([ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]); then
-		return 1
-	fi
-	mac_check=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac_address")
+	mac_check=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac_address")
 	case " $SEEN_MACS_VAR " in
 		*" $mac_check "*) return 1 ;;
 	esac
 	get_name "$mac_address"
-	mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
+	mac_final=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
 	case " $SEEN_MACS_VAR " in
 		*" $mac_final "*) return 1 ;;
 	esac
