@@ -1206,22 +1206,25 @@ get_mac_address() {
 	mac_prefix="${mac_address#??}"
 	mac_prefix="${mac_prefix%???}"
 	is_backhaul="no"
-	if [ "$BACKHAUL" = "yes" ] && ([ "$mac_prefix" = "$MAIN_PFX" ] || echo "$NODE_PFX" | grep -q "$mac_prefix"); then
+	is_node_pfx=0
+	case "$NODE_PFX" in *"$mac_prefix"*) is_node_pfx=1 ;; esac
+	if [ "$BACKHAUL" = "yes" ] && ([ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]); then
 		is_backhaul="yes"
 	fi
-	if [ "$BACKHAUL" != "yes" ] && ([ "$mac_prefix" = "$MAIN_PFX" ] || echo "$NODE_PFX" | grep -q "$mac_prefix"); then
+	if [ "$BACKHAUL" != "yes" ] && ([ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]); then
 		return 1
 	fi
 	mac_check=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac_address")
-	if grep -Fqi "$mac_check" "$SEEN_MACS"; then
-		return 1
-	fi
+	case " $SEEN_MACS_VAR " in
+		*" $mac_check "*) return 1 ;;
+	esac
 	get_name "$mac_address"
-	mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
-	if grep -Fqi "$mac_final" "$SEEN_MACS"; then
-		return 1
-	fi
-	echo "$mac_final" >> "$SEEN_MACS"
+	local mac_uc=$(echo "$mac" | tr '[:lower:]' '[:upper:]')
+	mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_uc}" || echo "$mac_uc")
+	case " $SEEN_MACS_VAR " in
+		*" $mac_final "*) return 1 ;;
+	esac
+	SEEN_MACS_VAR="$SEEN_MACS_VAR $mac_final"
 	return 0
 }
 
@@ -1285,7 +1288,8 @@ get_ip() {
 	ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
 	ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
     ip="${ip%%<*}"
-    ip_sort=$(ip_to_num "$ip")
+    ip_to_num "$ip"
+    ip_sort="$IP_NUM"
 }
 
 check_new_mac() {
@@ -1303,15 +1307,23 @@ ip_to_num() {
     o1="${ip%%.*}"; local rest="${ip#*.}"
     o2="${rest%%.*}"; rest="${rest#*.}"
     o3="${rest%%.*}"; o4="${rest#*.}"
-    case "$o1" in *[!0-9]*|"") printf "000000000000"; return ;; esac
-    case "$o2" in *[!0-9]*|"") printf "000000000000"; return ;; esac
-    case "$o3" in *[!0-9]*|"") printf "000000000000"; return ;; esac
-    case "$o4" in *[!0-9]*|"") printf "000000000000"; return ;; esac
+    case "$o1" in *[!0-9]*|"") IP_NUM="000000000000"; return ;; esac
+    case "$o2" in *[!0-9]*|"") IP_NUM="000000000000"; return ;; esac
+    case "$o3" in *[!0-9]*|"") IP_NUM="000000000000"; return ;; esac
+    case "$o4" in *[!0-9]*|"") IP_NUM="000000000000"; return ;; esac
     o1=${o1#${o1%%[!0]*}}; [ -z "$o1" ] && o1=0
     o2=${o2#${o2%%[!0]*}}; [ -z "$o2" ] && o2=0
     o3=${o3#${o3%%[!0]*}}; [ -z "$o3" ] && o3=0
     o4=${o4#${o4%%[!0]*}}; [ -z "$o4" ] && o4=0
-    printf "%03d%03d%03d%03d" "$o1" "$o2" "$o3" "$o4"
+    [ ${#o1} -eq 1 ] && o1="00$o1"
+    [ ${#o1} -eq 2 ] && o1="0$o1"
+    [ ${#o2} -eq 1 ] && o2="00$o2"
+    [ ${#o2} -eq 2 ] && o2="0$o2"
+    [ ${#o3} -eq 1 ] && o3="00$o3"
+    [ ${#o3} -eq 2 ] && o3="0$o3"
+    [ ${#o4} -eq 1 ] && o4="00$o4"
+    [ ${#o4} -eq 2 ] && o4="0$o4"
+    IP_NUM="${o1}${o2}${o3}${o4}"
 }
 
 get_band() {
@@ -1794,6 +1806,7 @@ MAIN_NAME="${MAIN_NICK:-${ROUTER:-"Main Router"}}"
 [ ${#MAIN_NAME} -gt 25 ] && MAIN_NAME="${MAIN_NAME:0:25}"
 MAIN_LABEL="<span class='router-branding'>$MAIN_NAME</span>"
 > "$SEEN_MACS"; > "$NEW_HISTORY"
+SEEN_MACS_VAR=""
 NL=$'\n'; MAIN_ROWS=""; NODE_ROWS=""; ALL_ROWS=""
 T_EXC=0; T_GOOD=0; T_FAIR=0; T_POOR=0; MAIN_DEVICE_TOTAL=0; NODE_DEVICE_TOTAL=0; BH_COUNTER=250
 WL_BASES=$(nvram get wl_ifnames)
