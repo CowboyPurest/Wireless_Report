@@ -935,26 +935,30 @@ set_options() {
 				CUR_DAYS=${RS_HIST_DAYS:-5}
 				CUR_DATE=${RS_HIST_DATE:-0}
 				while true; do
+					CS="$([ "$CUR_RS_HIST" = "1" ] && echo -e "${GR}ON${NC}" || echo -e "${RD}OFF${NC}")"
+					CD="${GR}$CUR_DAYS${NC}"; ONOFF="(${GR}ON${NC}/${RD}OFF${NC})"
+					TS="$([ "$CUR_DATE" = "1" ] && echo ${GR}"ON"${NC} || echo ${RD}"OFF"${NC})"
 					clear
 					echo -e "${BL}========= RSSI History Configuration =========${NC}"
-					echo -e "             Current Status: $([ "$CUR_RS_HIST" = "1" ] && echo -e "${GR}ON${NC}" || echo -e "${RD}OFF${NC}")"
-					echo -e "        Depth: ${GR}$CUR_DAYS${NC} days | Timestamps: $([ "$CUR_DATE" = "1" ] && echo ${GR}"ON"${NC} || echo ${RD}"OFF"${NC})"
-					echo -e "${BL}==============================================${NC}\n"
-					echo -e " $N1 Turn RSSI History ON"
-					echo -e " $N2 Turn RSSI History OFF"
-					echo -e " $N3 Set History Depth (${GR}$CUR_DAYS${NC})"
-					echo -e " $N4 Toggle Timestamps (${GR}$CUR_DATE${NC})\n"
-					echo -e " $NQ Cancel and Discard Changes"
-					echo -e " $NE Exit and Save Changes"
-					echo -e "\n${BL}==============================================${NC}"
+					echo -e "             Current Status: $CS                        "
+					echo -e "        Depth: $CD days | Timestamps: $TS               "
+					echo -e "${BL}==============================================${NC}"
+					echo -e "                                                        "
+					echo -e " $N1 Toggle RSSI History $ONOFF                         "
+					echo -e " $N2 Set History Depth                                  "
+					echo -e " $N3 Toggle Timestamps $ONOFF                           "
+					echo -e "                                                        "
+					echo -e " $NQ Cancel and Discard Changes                         "
+					echo -e " $NE Exit and Save Changes                              "
+					echo -e "                                                        "
+					echo -e "${BL}==============================================${NC}"
 					echo -ne "\n ${BL}Selection:${NC} "
 					read -r sub_choice
 					case "$sub_choice" in
-						 1) CUR_RS_HIST="1" ;;
+						 1) 
+							[ "$CUR_RS_HIST" = "1" ] && CUR_RS_HIST="0" || CUR_RS_HIST="1" ;;
 						 
-						 2) CUR_RS_HIST="0" ;;
-						 
-						 3) 
+						 2) 
 							echo -ne " Enter new depth (5-20) [Current: $CUR_DAYS]: "
 							read -r new_days
 							case "$new_days" in
@@ -963,7 +967,7 @@ set_options() {
 							esac
 							;;
 							
-						 4) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
+						 3) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
 						 
 						 c|C)
 							echo -e "\n${RD}[!] Changes discarded.${NC}"
