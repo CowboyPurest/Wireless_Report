@@ -1219,8 +1219,7 @@ get_mac_address() {
 		*" $mac_check "*) return 1 ;;
 	esac
 	get_name "$mac_address"
-	local mac_uc=$(echo "$mac" | tr '[:lower:]' '[:upper:]')
-	mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_uc}" || echo "$mac_uc")
+	mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
 	case " $SEEN_MACS_VAR " in
 		*" $mac_final "*) return 1 ;;
 	esac
