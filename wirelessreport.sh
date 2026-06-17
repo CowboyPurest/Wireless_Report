@@ -174,10 +174,15 @@ menu_vars() {
     else
         RH_STAT="${RD}OFF${NC}"
     fi
+	CUR_RS_HIST=${RS_HIST:-0}
+	CUR_DAYS=${RS_HIST_DAYS:-5}
+	CUR_DATE=${RS_HIST_DATE:-0}
+	
 	N1="${BL}(1)${NC}"; N2="${BL}(2)${NC}"; N3="${BL}(3)${NC}"; N4="${BL}(4)${NC}"
 	N5="${BL}(5)${NC}"; N6="${BL}(6)${NC}"; N7="${BL}(7)${NC}"; N8="${BL}(8)${NC}"
 	N9="${BL}(9)${NC}"; N0="${BL}(0)${NC}"; NE="${BL}(e)${NC}"; NU="${BL}(u)${NC}"
-	CT="${GR}$CUR_TIME${NC}"; DU="${GR}°$DISPLAY_UNIT${NC}"; NV="${BL}(v)${NC}"; NQ="${BL}(c)${NC}"
+	CT="${GR}$CUR_TIME${NC}"; DU="${GR}°$DISPLAY_UNIT${NC}"; NV="${BL}(v)${NC}"
+	NQ="${BL}(c)${NC}"; ON="${GR}ON${NC}"; OFF="${RD}OFF${NC}"; 
 	DATE_USA=$(date +"%b-%d"); DATE_INTL=$(date +"%d-%b"); DATE_ISO=$(date +"%Y-%m-%d")
 }
 			
@@ -931,22 +936,21 @@ set_options() {
                 pause 
                 ;;
             4)
-				CUR_RS_HIST=${RS_HIST:-0}
-				CUR_DAYS=${RS_HIST_DAYS:-5}
-				CUR_DATE=${RS_HIST_DATE:-0}
 				while true; do
-					CS="$([ "$CUR_RS_HIST" = "1" ] && echo -e "${GR}ON${NC}" || echo -e "${RD}OFF${NC}")"
-					CD="${GR}$CUR_DAYS${NC}"; ONOFF="(${GR}ON${NC}/${RD}OFF${NC})"
-					TS="$([ "$CUR_DATE" = "1" ] && echo ${GR}"ON"${NC} || echo ${RD}"OFF"${NC})"
+					CS="$([ "$CUR_RS_HIST" = "1" ] && echo -e "$ON" || echo -e "$OFF")"
+					TS="$([ "$CUR_DATE" = "1" ] && echo $ON || echo $OFF)"
+					CD="${GR}$CUR_DAYS${NC}"
 					clear
-					echo -e "${BL}========= RSSI History Configuration =========${NC}"
-					echo -e "             Current Status: $CS                        "
-					echo -e "        Depth: $CD days | Timestamps: $TS               "
+					echo -e "${BL}==============================================${NC}"
+					echo -e "${BL}          RSSI History Configuration          ${NC}"
+					echo -e "${BL}==============================================${NC}"
+					echo -e "             Current Status: [$CS]                      "
+					echo -e "       Depth: [$CD] days | Timestamps: [$TS]            "
 					echo -e "${BL}==============================================${NC}"
 					echo -e "                                                        "
-					echo -e " $N1 Toggle RSSI History $ONOFF                         "
+					echo -e " $N1 Toggle RSSI History ($ON/$OFF)                     "
 					echo -e " $N2 Set History Depth                                  "
-					echo -e " $N3 Toggle Timestamps $ONOFF                           "
+					echo -e " $N3 Toggle Timestamps ($ON/$OFF)                       "
 					echo -e "                                                        "
 					echo -e " $NQ Cancel and Discard Changes                         "
 					echo -e " $NE Exit and Save Changes                              "
@@ -959,7 +963,7 @@ set_options() {
 							[ "$CUR_RS_HIST" = "1" ] && CUR_RS_HIST="0" || CUR_RS_HIST="1" ;;
 						 
 						 2) 
-							echo -ne " Enter new depth (5-20) [Current: $CUR_DAYS]: "
+							echo -ne "\n Enter new depth (${BL}5-20${NC}) [Current: $CD]: "
 							read -r new_days
 							case "$new_days" in
 								5|6|7|8|9|1[0-9]|20) CUR_DAYS="$new_days" ;;
