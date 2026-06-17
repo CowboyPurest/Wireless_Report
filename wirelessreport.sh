@@ -178,8 +178,8 @@ menu_vars() {
 	CUR_DAYS=${RS_HIST_DAYS:-5}
 	CUR_DATE=${RS_HIST_DATE:-0}
 	N1="${BL}(1)${NC}"; N2="${BL}(2)${NC}"; N3="${BL}(3)${NC}"; N4="${BL}(4)${NC}"
-	N5="${BL}(5)${NC}"; N6="${BL}(6)${NC}"; N7="${BL}(7)${NC}"; N8="${BL}(8)${NC}"
-	N9="${BL}(9)${NC}"; N0="${BL}(0)${NC}"; NE="${BL}(e)${NC}"; NU="${BL}(u)${NC}"
+	N5="${BL}(5)${NC}"; N6="${BL}(6)${NC}"; N7="${BL}(7)${NC}"
+	N0="${BL}(0)${NC}"; NE="${BL}(e)${NC}"; NU="${BL}(u)${NC}"
 	CT="${GR}$CUR_TIME${NC}"; DU="${GR}°$DISPLAY_UNIT${NC}"; NV="${BL}(v)${NC}"
 	NQ="${BL}(c)${NC}"; ON="${GR}ON${NC}"; OFF="${RD}OFF${NC}"; 
 	DATE_USA=$(date +"%b-%d"); DATE_INTL=$(date +"%d-%b"); DATE_ISO=$(date +"%Y-%m-%d")
@@ -491,7 +491,6 @@ node_auth() {
         VALID_NODES=""
 		new_nodes=0
         for line in $NODE_IPS; do
-			get_usb
 			ALIAS=$(echo "$line" | cut -d'|' -f1)
 			IP=$(echo "$line" | cut -d'|' -f2)
 			[ -z "$IP" ] && continue
@@ -999,18 +998,6 @@ set_options() {
 				done
 				;;
 				
-			$'\024') 
-				if grep -q "RSSIM=" "$CONFIG"; then
-					[ "$RSSIM" = "1" ] && NEW_RSSIM="0" || NEW_RSSIM="1"
-					sed -i "s/RSSIM=.*/RSSIM=\"$NEW_RSSIM\"/" "$CONFIG"
-				else
-					echo 'RSSIM="1"' >> "$CONFIG"
-					NEW_RSSIM="1"
-				fi
-				RSSIM="$NEW_RSSIM"
-				echo -e "\n ${GR}[+] RSSI Masking toggled to: $RSSIM${NC}"
-				pause
-				;;
 			u|U) 
                 echo -e "\n${BL}================= USB Check ======================${NC}"
                 check_storage
@@ -1223,16 +1210,16 @@ get_mac_address() {
 		is_backhaul="yes"
 	fi
 	if [ "$BACKHAUL" != "yes" ] && ([ "$mac_prefix" = "$MAIN_PFX" ] || echo "$NODE_PFX" | grep -q "$mac_prefix"); then
-		continue
+		return 1
 	fi
 	mac_check=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac_address")
 	if grep -Fqi "$mac_check" "$SEEN_MACS"; then
-		continue
+		return 1
 	fi
 	get_name "$mac_address"
 	mac_final=$([ "$is_backhaul" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
 	if grep -Fqi "$mac_final" "$SEEN_MACS"; then
-		continue
+		return 1
 	fi
 	echo "$mac_final" >> "$SEEN_MACS"
 	return 0
@@ -1297,7 +1284,6 @@ get_ip() {
 	fi
 	ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
 	ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
-	ip="${ip%% *}"
     ip="${ip%%<*}"
     ip_sort=$(ip_to_num "$ip")
 }
@@ -1540,9 +1526,6 @@ get_row() {
 final_chk() {
 	[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
 	[ -z "$ssid" ] && ssid="Wireless"
-	if [ "$RSSIM" = "1" ]; then
-        return
-    fi
     if [ "$rssi" -ge 0 ] && [ "$rssi" -le 1 ]; then
         rssi=-54
     fi
@@ -1700,18 +1683,18 @@ for line in $SSH_NODES; do
 								DISPLAY_SSID=\$(nvram get \"\${PREFIX}_ssid\")
 							fi
 						fi
-						W="20"
-						if echo "$IFACE_INFO" | grep -q "6GHz" || echo "$IFACE_INFO" | grep -q "width:"; then
-							echo "$IFACE_INFO" | grep -q "320 MHz" && W="320"
-							echo "$IFACE_INFO" | grep -q "160 MHz" && W="160"
-							echo "$IFACE_INFO" | grep -q "80 MHz" && W="80"
-						elif [ -n "$LIVE_CHAN" ] && [ "$(echo "$LIVE_CHAN" | tr -d ',')" -gt 14 ]; then
-							W="80"
-							echo "$IFACE_INFO" | grep -q "160" && W="160"
+						W=\"20\"
+						if echo \"\$IFACE_INFO\" | grep -q \"6GHz\" || echo \"\$IFACE_INFO\" | grep -q \"width:\"; then
+							echo \"\$IFACE_INFO\" | grep -q \"320 MHz\" && W=\"320\"
+							echo \"\$IFACE_INFO\" | grep -q \"160 MHz\" && W=\"160\"
+							echo \"\$IFACE_INFO\" | grep -q \"80 MHz\" && W=\"80\"
+						elif [ -n \"\$LIVE_CHAN\" ] && [ \"\$(echo \"\$LIVE_CHAN\" | tr -d ',')\" -gt 14 ]; then
+							W=\"80\"
+							echo \"\$IFACE_INFO\" | grep -q \"160\" && W=\"160\"
 						fi
 						RAW_STAS=\$(iw dev \"\$iface\" station dump 2>/dev/null)
 						if [ -n \"\$RAW_STAS\" ]; then
-							echo \"\$RAW_STAS\" | awk -v def_w=\"\$DEFAULT_W\" '
+							echo \"\$RAW_STAS\" | awk -v def_w=\"\$W\" '
 								/^Station/ { 
 									if (mac != \"\") print mac, rssi, tx, rx, uptime, c_width
 									mac=\$2; rssi=\"-60\"; tx=\"0\"; rx=\"0\"; uptime=\"0\"; c_width=def_w
@@ -1754,7 +1737,6 @@ for line in $SSH_NODES; do
 									fi
 								fi
 								TX=\$(printf \"%04d\" \"\${TX_INT:-0}\")
-								
 								echo \"DATA|\$c_mac|\$c_rssi|\$iface|\$c_uptime|\$DISPLAY_SSID|\$TX|\$LRD|\$c_width|\"
 								NODE_COUNT=\$((NODE_COUNT + 1))
 							done
@@ -1829,10 +1811,10 @@ IFACE_LIST=$(echo "$IFACE_LIST $SDN_IFACES" | tr ' ' '\n' | sort -u | xargs)
 for iface in $IFACE_LIST; do
 	case "$iface" in lo|eth0|eth1|eth2|eth3) continue ;; esac
 	case "$iface" in
-		"$WL0_PHYS"*) data_iface="wl0" ;;
-		"$WL1_PHYS"*) data_iface="wl1" ;;
-		"$WL2_PHYS"*) data_iface="wl2" ;;
-		"$WL3_PHYS"*) data_iface="wl3" ;;
+		${WL0_PHYS:+"$WL0_PHYS"*}) data_iface="wl0" ;;
+		${WL1_PHYS:+"$WL1_PHYS"*}) data_iface="wl1" ;;
+		${WL2_PHYS:+"$WL2_PHYS"*}) data_iface="wl2" ;;
+		${WL3_PHYS:+"$WL3_PHYS"*}) data_iface="wl3" ;;
 		*) data_iface="$iface" ;;
 	esac
     ASSOCLIST=$(wl -i "$iface" assoclist 2>/dev/null)
@@ -1856,7 +1838,7 @@ for iface in $IFACE_LIST; do
 	fi
 	for mac in $MAC_LIST; do
 		[ -z "$mac" ] || [ "$mac" = "mac" ] && continue
-		get_mac_address
+		get_mac_address || continue
 		get_ip
 		raw_info=$(wl -i "$iface" sta_info "$mac" 2>/dev/null)
 		[ -z "$raw_info" ] && raw_info=$(wl -i "$data_iface" sta_info "$mac" 2>/dev/null)
@@ -1885,7 +1867,6 @@ for iface in $IFACE_LIST; do
 		case "$rx_disp" in *[!0-9]*|"") V1="" ;; *) V1="$rx_disp" ;; esac
 		case "$tx_disp" in *[!0-9]*|"") V2="" ;; *) V2="$tx_disp" ;; esac
 		[ -n "$V1" ] && [ -n "$V2" ] && [ "$V1" -gt "$V2" ] 2>/dev/null && { T=$rx_disp; rx_disp=$tx_disp; tx_disp=$T; lrd="$rx_disp / $tx_disp"; }
-		[ "$rx_disp" = "---" ] && [ "$tx_disp" = "---" ] && lrd="---"
 		lrd_val=$(printf "%04d" "${tx_disp:-0}")
 		final_chk
 		is_mac_new=$(check_new_mac "$mac")
@@ -1947,7 +1928,7 @@ for line in $SSH_NODES; do
 		while read -r ssh_node_data; do
 			[ -z "$ssh_node_data" ] && continue
 			parse_node "$ssh_node_data"
-			get_mac_address
+			get_mac_address || continue
 			get_ip
 			final_chk
             is_mac_new=$(check_new_mac "$mac")
@@ -2286,8 +2267,11 @@ function sortTable(n, tId, keepDir, forceDesc) {
 function openPopout() {
     localStorage.setItem('wifiReportPopoutOpen', 'true');
     var body = document.getElementById('popoutBody'); body.innerHTML = "";
-    var mCol = document.getElementById('mainCol').cloneNode(true); 
-    var nCol = document.getElementById('nodeCol').cloneNode(true);
+    var mCol = document.getElementById('mainCol');
+    var nCol = document.getElementById('nodeCol');
+    if (!mCol || !nCol) return;
+    mCol = mCol.cloneNode(true);
+    nCol = nCol.cloneNode(true);
     mCol.querySelector('table').id = "popMainTable"; 
     nCol.querySelector('table').id = "popNodeTable";
     mCol.querySelectorAll('th').forEach(function(th, i) {
