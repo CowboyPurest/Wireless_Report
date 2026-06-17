@@ -1753,9 +1753,9 @@ for line in $SSH_NODES; do
 										LRD=\"\$RX_INT / \$TX_INT\"
 									fi
 								fi
-								echo
 								TX=\$(printf \"%04d\" \"\${TX_INT:-0}\")
-								\"DATA|\$c_mac|\$c_rssi|\$iface|\$c_uptime|\$DISPLAY_SSID|\$TX|\$LRD|\$c_width|\"
+								
+								echo \"DATA|\$c_mac|\$c_rssi|\$iface|\$c_uptime|\$DISPLAY_SSID|\$TX|\$LRD|\$c_width|\"
 								NODE_COUNT=\$((NODE_COUNT + 1))
 							done
 						fi
