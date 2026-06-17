@@ -177,7 +177,6 @@ menu_vars() {
 	CUR_RS_HIST=${RS_HIST:-0}
 	CUR_DAYS=${RS_HIST_DAYS:-5}
 	CUR_DATE=${RS_HIST_DATE:-0}
-	
 	N1="${BL}(1)${NC}"; N2="${BL}(2)${NC}"; N3="${BL}(3)${NC}"; N4="${BL}(4)${NC}"
 	N5="${BL}(5)${NC}"; N6="${BL}(6)${NC}"; N7="${BL}(7)${NC}"; N8="${BL}(8)${NC}"
 	N9="${BL}(9)${NC}"; N0="${BL}(0)${NC}"; NE="${BL}(e)${NC}"; NU="${BL}(u)${NC}"
@@ -1146,7 +1145,7 @@ get_trend() {
     local current_rssi="$2"
     local rssi_name="${3:-""}"
 	if [ "$RS_HIST" = "1" ]; then
-		local rband=$(get_band "$iface" "$width" "$ALIAS" "raw")
+		local rband=$(get_band "$iface" "$width" "$ROUTER" "band")
 		local entry=$(grep -F "$mac|" "$HISTORY_CACHE" 2>/dev/null)
 		local history_str="${entry#*|}"
 		local prev_entry="${history_str##*,}"
@@ -1242,6 +1241,7 @@ get_mac_address() {
 get_name() {
 	mac="$mac_address"
 	name=""
+	
 	# YazDHCP
 	if [ -f "$YAZ_CACHE" ]; then
 		local entry=$(grep -i "^$mac|" "$YAZ_CACHE")
@@ -1427,7 +1427,7 @@ get_band() {
 		5G*)    class="text-5g"; sort="5"   ;;
 		6G*)    class="text-6g"; sort="6"   ;;
 	esac
-	if [ "$4" = "raw" ]; then
+	if [ "$4" = "band" ]; then
         echo "$Label"
     else
 		echo "<td data-sort='$sort' style='text-align:center;'><span class='$class'>$Label$w_text</span></td>"
@@ -1605,7 +1605,7 @@ NODE_DATA_DIR="/tmp/node_data"
 rm -rf "$NODE_DATA_DIR" 2>/dev/null
 mkdir -p "$NODE_DATA_DIR"
 for line in $SSH_NODES; do
-	ALIAS=$(echo "$line" | cut -d'|' -f1)
+	ROUTER=$(echo "$line" | cut -d'|' -f1)
 	IP=$(echo "$line" | cut -d'|' -f2)
 	[ -z "$IP" ] && continue
 	CLEAN_IP=$(echo "$IP" | tr '.' '_')
@@ -1807,8 +1807,8 @@ M_BOOT=$(date -d @$(( $(date +%s) - $(cut -d. -f1 /proc/uptime) )) "$D_FMT")
 MAIN_PFX=$(nvram get lan_hwaddr | cut -c 3-14 | tr '[:lower:]' '[:upper:]')
 NODE_PFX=$(nvram get cfg_relist | sed 's/[<>]/ /g' | tr ' ' '\n' | grep ":" | cut -c 3-14 | sort -u | tr '[:lower:]' '[:upper:]')
 ROUTER_IP=$(nvram get lan_ipaddr)
-ALIAS=$(nvram get cfg_device_list | sed 's/</\n/g' | grep ">$ROUTER_IP>" | awk -F'>' '{print $1}')
-MAIN_NAME="${MAIN_NICK:-${ALIAS:-"Main Router"}}"
+ROUTER=$(nvram get cfg_device_list | sed 's/</\n/g' | grep ">$ROUTER_IP>" | awk -F'>' '{print $1}')
+MAIN_NAME="${MAIN_NICK:-${ROUTER:-"Main Router"}}"
 [ ${#MAIN_NAME} -gt 25 ] && MAIN_NAME="${MAIN_NAME:0:25}"
 MAIN_LABEL="<span class='router-branding'>$MAIN_NAME</span>"
 > "$SEEN_MACS"; > "$NEW_HISTORY"
@@ -1890,7 +1890,7 @@ for iface in $IFACE_LIST; do
 		final_chk
 		is_mac_new=$(check_new_mac "$mac")
 		trend=$(get_trend "$mac" "$rssi" "$MAIN_NAME")
-		band=$(get_band "$iface" "$width" "$ALIAS")
+		band=$(get_band "$iface" "$width" "$ROUTER")
 		uptime=$(fmt_uptime "$uptime")
 		get_bars_rssi_style
 		get_max_column
@@ -1910,12 +1910,12 @@ wait
 #========================#
 for line in $SSH_NODES; do
 	NODE_OUT=""
-	ALIAS=$(echo "$line" | cut -d'|' -f1)
+	ROUTER=$(echo "$line" | cut -d'|' -f1)
 	IP=$(echo "$line" | cut -d'|' -f2)
 	[ -z "$IP" ] && continue
 	CLEAN_IP=$(echo "$IP" | tr '.' '_')
 	eval CUSTOM_NICK=\$NODE_NICK_$CLEAN_IP
-	NODE_NAME="${CUSTOM_NICK:-${ALIAS:-$IP}}"
+	NODE_NAME="${CUSTOM_NICK:-${ROUTER:-$IP}}"
 	[ ${#NODE_NAME} -gt 25 ] && NODE_NAME="${NODE_NAME:0:25}"
 	[ -f "$NODE_DATA_DIR/${CLEAN_IP}.out" ] && NODE_OUT=$(cat "$NODE_DATA_DIR/${CLEAN_IP}.out")
 	if [ -n "$NODE_OUT" ]; then
@@ -1952,7 +1952,7 @@ for line in $SSH_NODES; do
 			final_chk
             is_mac_new=$(check_new_mac "$mac")
 			trend=$(get_trend "$mac" "$rssi" "$NODE_NAME")
-			band=$(get_band "$iface" "$width" "$ALIAS")
+			band=$(get_band "$iface" "$width" "$ROUTER")
 			check_qca_up
 			uptime=$(fmt_uptime "$uptime")
 			get_bars_rssi_style
