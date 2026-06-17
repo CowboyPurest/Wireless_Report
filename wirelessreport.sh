@@ -177,7 +177,7 @@ menu_vars() {
 	N1="${BL}(1)${NC}"; N2="${BL}(2)${NC}"; N3="${BL}(3)${NC}"; N4="${BL}(4)${NC}"
 	N5="${BL}(5)${NC}"; N6="${BL}(6)${NC}"; N7="${BL}(7)${NC}"; N8="${BL}(8)${NC}"
 	N9="${BL}(9)${NC}"; N0="${BL}(0)${NC}"; NE="${BL}(e)${NC}"; NU="${BL}(u)${NC}"
-	CT="${GR}$CUR_TIME${NC}"; DU="${GR}°$DISPLAY_UNIT${NC}"; NV="${BL}(v)${NC}"
+	CT="${GR}$CUR_TIME${NC}"; DU="${GR}°$DISPLAY_UNIT${NC}"; NV="${BL}(v)${NC}"; NQ="${BL}(c)${NC}"
 	DATE_USA=$(date +"%b-%d"); DATE_INTL=$(date +"%d-%b"); DATE_ISO=$(date +"%Y-%m-%d")
 }
 			
@@ -931,47 +931,79 @@ set_options() {
                 pause 
                 ;;
             4)
-				if grep -q "RS_HIST=" "$CONFIG"; then
-					[ "$RS_HIST" = "1" ] && RS_HIST="0" || RS_HIST="1"
-					sed -i "s/RS_HIST=.*/RS_HIST=\"$RS_HIST\"/" "$CONFIG"
-				else
-					echo 'RS_HIST="1"' >> "$CONFIG"
-					RS_HIST="1"
-				fi
-				if [ "$RS_HIST" = "1" ]; then
-					RS_HIST_DAYS=${RS_HIST_DAYS:-5}; RS_HIST_DATE=${RS_HIST_DATE:-0}
-					OLD_RS_HIST_DAYS=$RS_HIST_DAYS; OLD_RS_HIST_DATE=$RS_HIST_DATE
-					echo -ne "\nEnter history depth (5-20)    ${GR}[Current: $RS_HIST_DAYS]:${NC} "
-					read -r NEW_RS_HIST_DAYS
-					RS_HIST_DAYS=${NEW_RS_HIST_DAYS:-$RS_HIST_DAYS}
-					if [ "$RS_HIST_DAYS" -lt 5 ] || [ "$RS_HIST_DAYS" -gt 20 ]; then
-						RS_HIST_DAYS=5
-					fi
-					echo -ne "Show timestamps (0=Off, 1=On) ${GR}[Current: $RS_HIST_DATE]:${NC} "
-					read -r NEW_RS_HIST_DATE
-					RS_HIST_DATE=${NEW_RS_HIST_DATE:-$RS_HIST_DATE}
-					TEMP_DATE=${NEW_RS_HIST_DATE:-$RS_HIST_DATE}
-					case "$TEMP_DATE" in
-						1|0) RS_HIST_DATE="$TEMP_DATE" ;; 
-						*)   RS_HIST_DATE=0 ;;            
+				CUR_RS_HIST=${RS_HIST:-0}
+				CUR_DAYS=${RS_HIST_DAYS:-5}
+				CUR_DATE=${RS_HIST_DATE:-0}
+				while true; do
+					clear
+					echo -e "${BL}========= RSSI History Configuration =========${NC}"
+					echo -e "             Current Status: $([ "$CUR_RS_HIST" = "1" ] && echo -e "${GR}ON${NC}" || echo -e "${RD}OFF${NC}")"
+					echo -e "        Depth: ${GR}$CUR_DAYS${NC} days | Timestamps: $([ "$CUR_DATE" = "1" ] && echo ${GR}"ON"${NC} || echo ${RD}"OFF"${NC})"
+					echo -e "${BL}==============================================${NC}\n"
+					echo -e " $N1 Turn RSSI History ON"
+					echo -e " $N2 Turn RSSI History OFF"
+					echo -e " $N3 Set History Depth (${GR}$CUR_DAYS${NC})"
+					echo -e " $N4 Toggle Timestamps (${GR}$CUR_DATE${NC})\n"
+					echo -e " $NQ Cancel and Discard Changes"
+					echo -e " $NE Exit and Save Changes"
+					echo -e "\n${BL}==============================================${NC}"
+					echo -ne "\n ${BL}Selection:${NC} "
+					read -r sub_choice
+					case "$sub_choice" in
+						 1) CUR_RS_HIST="1" ;;
+						 
+						 2) CUR_RS_HIST="0" ;;
+						 
+						 3) 
+							echo -ne " Enter new depth (5-20) [Current: $CUR_DAYS]: "
+							read -r new_days
+							case "$new_days" in
+								5|6|7|8|9|1[0-9]|20) CUR_DAYS="$new_days" ;;
+								*) echo -e "${RD}[!] Invalid: Use 5-20${NC}"; sleep 1 ;;
+							esac
+							;;
+							
+						 4) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
+						 
+						 c|C)
+							echo -e "\n${RD}[!] Changes discarded.${NC}"
+							pause
+							break
+							;;
+							
+						 e|E)
+							sed -i "s/^RS_HIST=.*/RS_HIST=\"$CUR_RS_HIST\"/" "$CONFIG"
+							if grep -q "^RS_HIST_DAYS=" "$CONFIG"; then
+								sed -i "s/^RS_HIST_DAYS=.*/RS_HIST_DAYS=\"$CUR_DAYS\"/" "$CONFIG"
+							else
+								echo "RS_HIST_DAYS=\"$CUR_DAYS\"" >> "$CONFIG"
+							fi
+							if grep -q "^RS_HIST_DATE=" "$CONFIG"; then
+								sed -i "s/^RS_HIST_DATE=.*/RS_HIST_DATE=\"$CUR_DATE\"/" "$CONFIG"
+							else
+								echo "RS_HIST_DATE=\"$CUR_DATE\"" >> "$CONFIG"
+							fi
+							[ -f "$HISTORY_DB" ] && rm -f "$HISTORY_DB"
+							echo -e "\n${GR}[+] Configuration saved and DB cleared.${NC}"
+							pause
+							break
+							;;
 					esac
-					for var in RS_HIST_DAYS RS_HIST_DATE; do
-						eval val=\$$var
-						grep -q "^$var=" "$CONFIG" && sed -i "s|^$var=.*|$var=\"$val\"|" "$CONFIG" || echo "$var=\"$val\"" >> "$CONFIG"
-					done
-					echo -e "\n${BL}==================================================${NC}\n"
-					echo -e "Configuration Updates Applied:\n"
-					echo -e "${BL}History Depth:${NC} [Old: $OLD_RS_HIST_DAYS] -> ${GR}[New: $RS_HIST_DAYS]${NC}"
-					echo -e "${BL}Date Setting:${NC}  [Old: $OLD_RS_HIST_DATE] -> ${GR}[New: $RS_HIST_DATE]${NC}"
-					echo -e "\n${BL}==================================================${NC}"
-					if [ "$RS_HIST_DATE" != "$OLD_RS_HIST_DATE" ]; then
-						rm -f "$HISTORY_DB"
-						echo -e "${BL}Status:${NC} RSSI history database cleared due to format change."
-					fi
-					pause
-				fi
+				done
 				;;
 				
+			$'\024') 
+				if grep -q "RSSIM=" "$CONFIG"; then
+					[ "$RSSIM" = "1" ] && NEW_RSSIM="0" || NEW_RSSIM="1"
+					sed -i "s/RSSIM=.*/RSSIM=\"$NEW_RSSIM\"/" "$CONFIG"
+				else
+					echo 'RSSIM="1"' >> "$CONFIG"
+					NEW_RSSIM="1"
+				fi
+				RSSIM="$NEW_RSSIM"
+				echo -e "\n ${GR}[+] RSSI Masking toggled to: $RSSIM${NC}"
+				pause
+				;;
 			u|U) 
                 echo -e "\n${BL}================= USB Check ======================${NC}"
                 check_storage
