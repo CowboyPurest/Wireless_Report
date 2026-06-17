@@ -2,6 +2,7 @@
 Wireless Report AiMesh - Changelog
 ----------------------------------
 
+v1.9.3-added Robust RSSI History Management.
 v1.9.2-add band to RSSI Tooltip.
 v1.9.1-enhanced RSSI History.
 v1.9.0-code refactoring & cleanup.
