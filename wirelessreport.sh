@@ -1124,6 +1124,8 @@ do_darkmode() {
 	: "${DARKMODE:=0}"
 	if [ "$DARKMODE" = "1" ]; then
 		DARKCSS=".section-header { background: transparent !important; color: #fff; font: bold 12px/16px sans-serif; padding: 12px; text-align: center; border: 0 !important; box-shadow: 0 !important; }
+		.header-stats-row { margin-top: 15px !important; }
+		.modal-grid .section-header { min-height: 85px !important; }
 		.report-column { width: 100%; background: transparent !important; border: none !important; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
 		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: transparent !important; vertical-align: middle; text-align: center; }
 		table.report_table tfoot td { border-top: none !important; border-bottom: none !important; box-shadow: none !important; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
