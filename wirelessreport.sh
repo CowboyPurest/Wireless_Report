@@ -27,7 +27,7 @@
 #                  https://github.com/JB1366/Wireless_Report                    #
 #                                                                               #
 #===============================================================================#
-# shellcheck shell=sh disable=SC2086,SC2155,SC3043                              #                  
+# shellcheck shell=sh disable=SC2086,SC2155,SC3043                              #
 #===============================================================================#
 
 SCRIPT_VERSION="1.9.4"
@@ -66,7 +66,7 @@ export PATH="/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 #==================#
 install_menu() {
 	while true; do
-		clear; menu_vars 
+		clear; menu_vars
 		echo -e "${BL}" #=====================================================
 		echo -e "  __      __ __               __                            "
 		echo -e " /  \    /  \__|______  ____ |  |   ____  ____________      "
@@ -120,7 +120,7 @@ install_menu() {
 	done
 }
 
-check_version() { 
+check_version() {
 	if [ -f "$REPORT_SCRIPT" ]; then
         LOCAL_VER=$(grep "SCRIPT_VERSION=" "$REPORT_SCRIPT" | head -n 1 | cut -d'"' -f2 2>/dev/null)
     else
@@ -183,10 +183,10 @@ menu_vars() {
 	N5="${BL}(5)${NC}"; N6="${BL}(6)${NC}"; N7="${BL}(7)${NC}"
 	N0="${BL}(0)${NC}"; NE="${BL}(e)${NC}"; NU="${BL}(u)${NC}"
 	CT="${GR}$CUR_TIME${NC}"; DU="${GR}°$DISPLAY_UNIT${NC}"; NV="${BL}(v)${NC}"
-	NQ="${BL}(c)${NC}"; ON="${GR}ON${NC}"; OFF="${RD}OFF${NC}"; 
+	NQ="${BL}(c)${NC}"; ON="${GR}ON${NC}"; OFF="${RD}OFF${NC}";
 	DATE_USA=$(date +"%b-%d"); DATE_INTL=$(date +"%d-%b"); DATE_ISO=$(date +"%Y-%m-%d")
 }
-			
+
 check_installed() {
 	if [ ! -f "$REPORT_SCRIPT" ]; then
         echo -e "\n${RD}[!] ERROR: Wireless Report AiMesh not Installed.${NC}\n"
@@ -225,12 +225,12 @@ do_install() {
 	check_storage
 	if [ -f "$SSH_KEY" ]; then
 		node_auth
-	else 
+	else
 		install="1"
 		echo -e "\n${GR}[+] Select Option #1 to setup SSH Keys.${NC}\n"
 		sleep 5
 		check_ssh || return 1
-	fi	
+	fi
     echo -e "${GR}[+] Processing Wireless Report Files...${NC}\n"
     grep -q "REPORT_UNIT=" "$CONFIG" 2>/dev/null || echo "REPORT_UNIT=F" >> "$CONFIG"
 	grep -q "BACKHAUL=" "$CONFIG" 2>/dev/null || echo 'BACKHAUL="no"' >> "$CONFIG"
@@ -352,7 +352,7 @@ get_usb() {
     fi
     [ -n "$USB_PATH" ] && [ ! -d "$USB_PATH" ] && mkdir -p "$USB_PATH"
     KNOWN_DB="$USB_PATH/known_macs.db"
-	HISTORY_DB="$USB_PATH/rssi_history.db" 
+	HISTORY_DB="$USB_PATH/rssi_history.db"
     ERROR_LOG="$USB_PATH/ssh_error.log"
 	export USB_PATH KNOWN_DB HISTORY_DB ERROR_LOG
 }
@@ -435,7 +435,7 @@ check_ssh() {
                 pause
                 continue
                 ;;
-            5) 
+            5)
                 echo -e "\n${BL}================= SSH Error Log ==================${NC}\n"
                 if [ -f "$ERROR_LOG" ]; then
                     cat "$ERROR_LOG"
@@ -446,7 +446,7 @@ check_ssh() {
                 pause
                 continue
                 ;;
-            6) 
+            6)
                 if [ "$install" = "1" ]; then
                     echo -e "\n${YL}[i] You must run option #1 first.${NC}"
                     pause
@@ -455,14 +455,14 @@ check_ssh() {
                 node_auth
                 pause
                 ;;
-            e|E) 
-                return 
+            e|E)
+                return
                 ;;
-            *) 
-                continue 
+            *)
+                continue
                 ;;
         esac
-	done	
+	done
 }
 
 node_auth() {
@@ -502,7 +502,7 @@ node_auth() {
             SSH_ERR=$(/usr/bin/ssh -p "$SSH_PORT" -i "$SSH_KEY" -o StrictHostKeyChecking=no -o BatchMode=yes "${NODE_USER}@${IP}" "exit" 2>&1 >/dev/null)
 			SSH_RC=$?
 			if [ -n "$SSH_ERR" ]; then
-				echo "$SSH_ERR" | while read -r line; do 
+				echo "$SSH_ERR" | while read -r line; do
 					ssh_error "$line"
 				done
 			fi
@@ -605,7 +605,7 @@ ssh_keys() {
 		echo -e "\n${YL}[!] Main Router SSH Key already exsists.${NC}"
 		pause
 		return 0
-	fi	
+	fi
 	if [ -f "/jffs/.ssh/id_dropbear" ] && [ ! -f "/root/.ssh/id_dropbear" ]; then
 		echo -e "\n${GR}[!] Stored JFFS key detected. Linking and configuring...${NC}\n"
 		sleep 3
@@ -643,12 +643,12 @@ ssh_keys() {
 	echo -e "${BL}==================================================${NC}"
 	echo -e "${YL}               ACTION REQUIRED NOW                ${NC}"
     echo -e "${BL}==================================================${NC}"
-	echo -e "\n${BL}[*] STEP 1: Go to Asus WebGUI > AiMesh > Management${NC}" 
+	echo -e "\n${BL}[*] STEP 1: Go to Asus WebGUI > AiMesh > Management${NC}"
 	echo -e "${BL}[*] STEP 2: Click 'Reboot Node' for each node${NC}\n"
 	echo -e "${YL}[!] Do not press [Enter] until Nodes are confirmed to be back online.${NC}\n"
 	echo -e "${BL}[*] TIP: If a node is missing after authentication,${NC}"
 	echo -e "${BL}[*]      use option #6 to reauthenticate.${NC}"
-	echo -ne "\n[*] Press ${BL}[ENTER]${NC} to begin authentication check..." 
+	echo -ne "\n[*] Press ${BL}[ENTER]${NC} to begin authentication check..."
 	read
 	node_auth "pause"
 }
@@ -810,7 +810,7 @@ set_nicknames() {
                 echo -e "\n${BL}[+] Resetting to hardware defaults...${NC}\n"
                 OLD_NAME="${MAIN_NICK:-$MAIN_HW_MODEL}"
                 sed -i '/^MAIN_NICK=/d' "$CONFIG"
-                unset MAIN_NICK  
+                unset MAIN_NICK
                 echo -e "    $OLD_NAME -> ${GR}$MAIN_HW_MODEL${NC}"; sleep 1
                 if [ -n "$SSH_NODES" ] && [ "$SSH_NODES" != " " ]; then
                     for node in $VALID_NODES; do
@@ -842,7 +842,7 @@ set_nicknames() {
                     CLEAN_IP=$(echo "$IP" | tr '.' '_')
                     eval OLD_NICK=\$NODE_NICK_$CLEAN_IP
                     NODE_LOC=$(cat /jffs/.sys/cfg_mnt/re.info | sed 's/},/}\n/g' | grep "$IP" | sed -n 's/.*"alias":"\([^"]*\)".*/\1/p')
-                    
+
                     sed -i "/^NODE_NICK_$CLEAN_IP=/d" "$CONFIG"
                     if [ -n "$NODE_LOC" ]; then
                         echo "NODE_NICK_$CLEAN_IP=\"$NODE_LOC\"" >> "$CONFIG"
@@ -905,7 +905,7 @@ set_options() {
 		printf "\n ${BL}Selection:${NC} "
         read t_choice
 		case "$t_choice" in
-            1) 
+            1)
                 if grep -q "RTIME=" "$CONFIG"; then
                     [ "$RTIME" = "1" ] && sed -i 's/RTIME=.*/RTIME="0"/' "$CONFIG" || sed -i 's/RTIME=.*/RTIME="1"/' "$CONFIG"
                 else
@@ -913,17 +913,17 @@ set_options() {
                 fi
                 if [ -f "$USB_PATH/runtime.db" ]; then
                     rm -f "$USB_PATH/runtime.db"
-                fi 
+                fi
                 ;;
-            2) 
+            2)
                 if grep -q "BACKHAUL=" "$CONFIG"; then
                     [ "$BACKHAUL" = "yes" ] && NEW_BACK="no" || NEW_BACK="yes"
                     sed -i "s/BACKHAUL=.*/BACKHAUL=\"$NEW_BACK\"/" "$CONFIG"
                 else
                     echo 'BACKHAUL="yes"' >> "$CONFIG"
-                fi 
+                fi
                 ;;
-            3) 
+            3)
                 echo -e "\n (${GR}0${NC}) disable (${GR}15${NC}) def (${GR}1440${NC}) max "
                 printf " ${BL}Enter alert interval in mins:${NC} "
                 read user_mins
@@ -943,7 +943,7 @@ set_options() {
                 else
                     echo -e "\n ${RD}[!] Invalid entry. Please enter numbers only.${NC}"
                 fi
-                pause 
+                pause
                 ;;
             4)
 				while true; do
@@ -969,10 +969,10 @@ set_options() {
 					echo -ne "\n ${BL}Selection:${NC} "
 					read -r sub_choice
 					case "$sub_choice" in
-						 1) 
+						 1)
 							[ "$CUR_RS_HIST" = "1" ] && CUR_RS_HIST="0" || CUR_RS_HIST="1" ;;
-						 
-						 2) 
+
+						 2)
 							echo -ne "\n Enter new depth (${BL}5-20${NC}) [Current: $CD]: "
 							read -r new_days
 							case "$new_days" in
@@ -980,15 +980,15 @@ set_options() {
 								*) echo -e "${RD}[!] Invalid: Use 5-20${NC}"; sleep 1 ;;
 							esac
 							;;
-							
+
 						 3) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
-						 
+
 						 c|C)
 							echo -e "\n${RD}[!] Changes discarded.${NC}"
 							pause
 							break
 							;;
-							
+
 						 e|E)
 							sed -i "s/^RS_HIST=.*/RS_HIST=\"$CUR_RS_HIST\"/" "$CONFIG"
 							if grep -q "^RS_HIST_DAYS=" "$CONFIG"; then
@@ -1009,8 +1009,8 @@ set_options() {
 					esac
 				done
 				;;
-				
-			5) 
+
+			5)
 				if grep -q "DARKMODE=" "$CONFIG"; then
 					[ "$DARKMODE" = "1" ] && NEW_DM="0" || NEW_DM="1"
 					sed -i "s/DARKMODE=.*/DARKMODE=\"$NEW_DM\"/" "$CONFIG"
@@ -1018,16 +1018,16 @@ set_options() {
 					echo 'DARKMODE="1"' >> "$CONFIG"
 				fi
 				;;
-			
-			u|U) 
+
+			u|U)
                 echo -e "\n${BL}================= USB Check ======================${NC}"
                 check_storage
                 echo -e "\n${BL}==================================================${NC}"
                 pause
                 continue
                 ;;
-				
-			v|V) 
+
+			v|V)
                 echo -e "\n${BL}================== CONFIG ======================${NC}\n"
                 if [ -f "$CONFIG" ]; then
                     cat "$CONFIG"
@@ -1038,12 +1038,12 @@ set_options() {
                 pause
                 continue
                 ;;
-            e|E) 
+            e|E)
                 sort -u -o "$CONFIG" "$CONFIG"
-				return 
+				return
                 ;;
-            *) 
-                continue 
+            *)
+                continue
                 ;;
         esac
     done
@@ -1088,7 +1088,7 @@ do_runtime() {
 			.refresh-box:has(.btn-manual:hover):after { opacity: 1; visibility: visible; }
 			.refresh-box:has(.btn-manual:hover) .btn-manual:before, .refresh-box:has(select:hover) select:before { opacity: 1; visibility: visible; top: 190%; }
 			.refresh-box:has(.btn-manual:hover) .btn-manual:after, .refresh-box:has(select:hover) select:after { opacity: 1; visibility: visible; }"
-	else 
+	else
 		RUNTIME_CSS=""; RUNTIME=""
 		if [ -f "$USB_PATH/runtime.db" ]; then
 			rm -f "$USB_PATH/runtime.db"
@@ -1130,7 +1130,7 @@ do_darkmode() {
 		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: transparent !important; vertical-align: middle; text-align: center; }
 		table.report_table tfoot td { border-top: none !important; border-bottom: none !important; box-shadow: none !important; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
 		.sep-line { display: none !important; }"
-	else	
+	else
 		DARKCSS=".section-header { background: linear-gradient(to bottom, #171b1f, #354961); color: #ffffff; font-weight: bold; padding: 12px; text-align: center; border-bottom: 1px solid #475a68; }
 		.report-column { width: 100%; background: #1c232b; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
 		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: #1c232b; vertical-align: middle; text-align: center; }
@@ -1273,13 +1273,13 @@ get_mac_address() {
 get_name() {
 	mac="$mac_address"
 	name=""
-	
+
 	# YazDHCP
 	if [ -f "$YAZ_CACHE" ]; then
 		local entry=$(grep -i "^$mac|" "$YAZ_CACHE")
 		name="${entry##*|}"
 	fi
-	
+
 	# Custom Client List
 	if [ -z "$name" ] || [ "$name" = "*" ]; then
 		if [ -f "$CUSTOM_CLIENTS_CACHE" ]; then
@@ -1287,7 +1287,7 @@ get_name() {
 			name="${entry#*|}"
 		fi
 	fi
-	
+
 	# Networkmap Client / MLO
 	if [ -z "$name" ] || [ "$name" = "*" ]; then
 		local entry=$(sed 's/},"/ \n"/g' /jffs/nmp_cl_json.js | grep -i "$mac" | head -n 1)
@@ -1298,7 +1298,7 @@ get_name() {
 		fi
 		name=$(echo "$entry" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
     fi
-	
+
 	# Wireless Backhaul
 	if [ -z "$name" ] || [ "$name" = "*" ] || [ "$name" = "$mac" ]; then
 		local temp="${mac#*:}"
@@ -1312,7 +1312,7 @@ get_name() {
 			fi
 		fi
 	fi
-	
+
 	# Fallback
 	if [ -z "$name" ] || [ "$name" = "*" ]; then
 		name="$mac"
@@ -1376,7 +1376,7 @@ get_band() {
     local Label="Unknown"
     local m=$(echo "$model" | tr '[:lower:]' '[:upper:]')
 	case "$m" in
-	
+
 		# Quad-Band Mapping (5G,6G-1,6G-2,2.4G)
 		# Models: GT-BE98(Pro), BQ16
         *BE98*|*BQ16*)
@@ -1387,7 +1387,7 @@ get_band() {
                 wl3*|eth10*) Label="2.4G" ;;
             esac
             ;;
-        
+
 		# Quad-Band Mapping (5G,5G-2,6G,2.4G)
 		# Models: GT-AXE16000, GT-BE25000
         *AXE16000*|*BE25000*)
@@ -1398,7 +1398,7 @@ get_band() {
                 wl3*|eth10*) Label="2.4G" ;;
             esac
             ;;
-			
+
 		# Tri-Band ZenWiFi-BT10 Specific
         *BT10*)
             case "$iface" in
@@ -1407,29 +1407,29 @@ get_band() {
                 wl2*) Label="2.4G" ;;
             esac
             ;;
-			
+
 		# Tri-Band Mapping (2.4G,5G,6G)
-        # Models: RT-BE96U, RT-BE92U, GT-BE19000, GS-BE18000, GS-BE12000, BT6, ZENWIFI-BT8(MEDIATEK), 
+        # Models: RT-BE96U, RT-BE92U, GT-BE19000, GS-BE18000, GS-BE12000, BT6, ZENWIFI-BT8(MEDIATEK),
         #         RT-AXE7800, GT-AXE11000, ET8, ET9, ET12
         *BE96U*|*BE92U*|*BE19000*|*BE18000*|*BE12000*|*BT6*|*BT8*|*AXE7800*|*AXE11000*|*ET8*|*ET9*|*ET12*)
             case "$iface" in
-                wl0*|eth1*|eth4*|eth8*|ra[0-9]*)         Label="2.4G" ;; 
+                wl0*|eth1*|eth4*|eth8*|ra[0-9]*)         Label="2.4G" ;;
                 wl1*|eth2*|eth5*|eth7*|eth10*|rai[0-9]*) Label="5G" ;;
                 wl2*|eth6*|eth9*|rax[0-9]*)              Label="6G" ;;
             esac
             ;;
-        
+
 		# Tri-Band Mapping (2.4G,5G-1,5G-2)
         # Models:  RT-AX92U, GT6, XT8, XT9, ZENWIFI-XT12
         *AX92U*|*GT6*|*XT8*|*XT9*|*XT12*)
             case "$iface" in
-                wl0*|eth1*|eth4*|eth8*)        Label="2.4G" ;; 
+                wl0*|eth1*|eth4*|eth8*)        Label="2.4G" ;;
                 wl1*|eth2*|eth5*|eth7*|eth10*) Label="5G-1" ;;
-                wl2*|eth6*|eth9*)              Label="5G-2" ;; 
-            esac    
+                wl2*|eth6*|eth9*)              Label="5G-2" ;;
+            esac
             ;;
-        
-		# Dual-Band DSL-AX82U Specific 
+
+		# Dual-Band DSL-AX82U Specific
         *DSL-AX82U*)
             case "$iface" in
                 wl0*|eth5*) Label="2.4G" ;;
@@ -1437,18 +1437,18 @@ get_band() {
                 *)          Label="Unknown" ;;
             esac
             ;;
-        
+
 		# Dual-Band Mapping
 		# Models:  RT-AX86U, ZENWIFI-BD4(QUALCOMM)
         *)
             case "$iface" in
                 wl0*|eth1*|eth4*|eth6*|eth8*|ath0*)  Label="2.4G" ;;
-                wl1*|eth2*|eth5*|eth7*|eth10*|ath1*) Label="5G" ;; 
+                wl1*|eth2*|eth5*|eth7*|eth10*|ath1*) Label="5G" ;;
                 *)                                   Label="Unknown" ;;
             esac
             ;;
     esac
-    
+
     # Wireless Backhaul
     if [ -n "$width" ]; then
         if [ "$width" -eq 320 ] && [ "$Label" = "Unknown" ]; then
@@ -1461,7 +1461,7 @@ get_band() {
             case "$iface" in *0*) Label="2.4G" ;; *) Label="5G" ;; esac
         fi
     fi
-	
+
     # Band UI Renderer
 	local class="" sort="0"
 	case "$Label" in
@@ -1475,7 +1475,7 @@ get_band() {
 		echo "<td data-sort='$sort' style='text-align:center;'><span class='$class'>$Label$w_text</span></td>"
 	fi
 }
-		
+
 fmt_uptime() {
     local T=$1
     if [ -z "$T" ] || case "$T" in *[!0-9]*) true ;; *) false ;; esac; then
@@ -1524,7 +1524,7 @@ get_temp_class() {
         awk -v t="$val" 'BEGIN { if(t>167) print "stat-hot"; else if(t>155) print "stat-warm"; else print "stat-cool"; }'
     fi
 }
- 
+
 get_load_class() {
     local l=$1; [ "$l" = "--" ] && { echo "stat-cool"; return; }
     awk -v l="$l" 'BEGIN { print (l>2.0 ? "stat-hot" : (l>1.0 ? "stat-warm" : "stat-cool")) }'
@@ -1692,14 +1692,14 @@ for line in $SSH_NODES; do
 							W=\$(echo \"\$RAW\" | grep -i "bandwidth" | grep -oE '[0-9]+' | head -n 1)
 							if [ -z \"\$W\" ]; then
 								HEX=\$(echo \"\$RAW\" | grep -o '0x[0-9a-fA-F]*' | head -n1)
-								case \"\$HEX\" in 
-									0x10*|0xd0*) W=\"20\" ;; 
-									0x11*|0xd1*) W=\"40\" ;; 
-									0xe0*) W=\"80\" ;; 
+								case \"\$HEX\" in
+									0x10*|0xd0*) W=\"20\" ;;
+									0x11*|0xd1*) W=\"40\" ;;
+									0xe0*) W=\"80\" ;;
 									0xe8*) W=\"160\" ;;
 									0xe9*) W=\"160\" ;;
-									0xf*) W=\"320\" ;; 
-									*) W=\"20\" ;; 
+									0xf*) W=\"320\" ;;
+									*) W=\"20\" ;;
 								esac
 							fi
 							UP=\$(echo \"\$RAW\" | grep \"in network\" | awk '{print \$3}')
@@ -1750,15 +1750,15 @@ for line in $SSH_NODES; do
 						RAW_STAS=\$(iw dev \"\$iface\" station dump 2>/dev/null)
 						if [ -n \"\$RAW_STAS\" ]; then
 							echo \"\$RAW_STAS\" | awk -v def_w=\"\$W\" '
-								/^Station/ { 
+								/^Station/ {
 									if (mac != \"\") print mac, rssi, tx, rx, uptime, c_width
 									mac=\$2; rssi=\"-60\"; tx=\"0\"; rx=\"0\"; uptime=\"0\"; c_width=def_w
 								}
-								/signal:/ && !/last ack/ { 
-									gsub(/[^0-9-]/, \"\", \$2); 
-									rssi=\$2 
+								/signal:/ && !/last ack/ {
+									gsub(/[^0-9-]/, \"\", \$2);
+									rssi=\$2
 								}
-								/tx bitrate:/ { 
+								/tx bitrate:/ {
 									tx=\$3
 									if (\$0 ~ /[0-9]+MHz/) {
 										match(\$0, /[0-9]+MHz/)
@@ -1770,10 +1770,10 @@ for line in $SSH_NODES; do
 									}
 								}
 								/rx bitrate:/ { rx=\$3 }
-								/connected time:/ { 
-									s=\$3; 
-									gsub(/[^0-9]/, \"\", s); 
-									uptime=s 
+								/connected time:/ {
+									s=\$3;
+									gsub(/[^0-9]/, \"\", s);
+									uptime=s
 								}
 								END { if (mac != \"\") print mac, rssi, tx, rx, uptime, c_width }
 							' | while read -r c_mac c_rssi c_tx c_rx c_uptime c_width; do
@@ -2064,9 +2064,9 @@ cat <<HTML >> "$WEB_PAGE"
 	${DARKCSS}
 	.report_table tbody tr:hover td { background-color: rgba(0, 123, 255, 0.15) !important; cursor: pointer; }
 	table.report_table { width: 100%; border-collapse: collapse; }
-	table.report_table.show-ip .m-val { display: none !important; } 
+	table.report_table.show-ip .m-val { display: none !important; }
 	table.report_table.show-ip .i-val { display: inline !important; color: #64d2ff; }
-	table.report_table.show-iface .s-val { display: none !important; } 
+	table.report_table.show-iface .s-val { display: none !important; }
 	table.report_table.show-iface .if-val { display: inline !important; color: #64d2ff; }
 	table.report_table thead th { position: sticky; top: 0; z-index: 10; background: linear-gradient(to bottom, #0096ff, #0056b3); color: #fff; padding: 8px; cursor: pointer; text-align: center; border-right: 1px solid rgba(255,255,255,0.1); }
 	table.report_table th:hover { background: #00e5ff; color: #000; text-shadow: 0 0 10px rgba(0,229,255,0.8); }
@@ -2079,7 +2079,7 @@ cat <<HTML >> "$WEB_PAGE"
 	@keyframes pulse-blue-glow { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 	.new-device-row { background-color: rgba(0, 229, 255, 0.1) !important; animation: pulse-blue-glow 2s infinite; }
 	.val-blue { color: #0096ff !important; font-weight: bold; }
-	.sig-exc { color: #30d158; } .sig-good { color: #64d2ff; } 
+	.sig-exc { color: #30d158; } .sig-good { color: #64d2ff; }
 	.sig-fair { color: #ffd60a; } .sig-poor { color: #ff453a; }
 	.stat-warm { color: #ffa500 !important; font-weight: bold; }
 	.stat-hot { color: #ff453a !important; font-weight: bold; }
@@ -2166,13 +2166,13 @@ function triggerRefresh() {
     if (btn) btn.innerText = "Refreshing...";
     var expires = new Date(Date.now() + 30000).toUTCString();
     document.cookie = "report_done=true; expires=" + expires + "; path=/";
-    fetch('/apply.cgi', { 
-        method: 'POST', 
-        body: 'action_mode=apply&rc_service=restart_wireless_report&current_page=$INSTALLED_PAGE&next_page=$INSTALLED_PAGE' 
+    fetch('/apply.cgi', {
+        method: 'POST',
+        body: 'action_mode=apply&rc_service=restart_wireless_report&current_page=$INSTALLED_PAGE&next_page=$INSTALLED_PAGE'
     });
     var scanTime = parseFloat("$JS_DIFF") || 5.0;
     var delay = Math.max(2500, Math.ceil((scanTime * 1000) + 1500));
-    setTimeout(function() { window.location.reload(); }, delay); 
+    setTimeout(function() { window.location.reload(); }, delay);
 }
 window.addEventListener('load', function() {
     if (document.cookie.indexOf("report_done=true") === -1) {
@@ -2195,24 +2195,24 @@ function switchTab(view) {
     var btnStack = document.getElementById('btnStack');
     var btnAll = document.getElementById('btnAll');
     if(view === 'all') {
-        if (split) split.style.display = 'none'; 
+        if (split) split.style.display = 'none';
         if (all) all.style.display = 'flex';
-        if (btnAll) btnAll.classList.add('active'); 
+        if (btnAll) btnAll.classList.add('active');
         if (btnStack) btnStack.classList.remove('active');
     } else {
-        if (split) split.style.display = 'flex'; 
+        if (split) split.style.display = 'flex';
         if (all) all.style.display = 'none';
-        if (btnStack) btnStack.classList.add('active'); 
+        if (btnStack) btnStack.classList.add('active');
         if (btnAll) btnAll.classList.remove('active');
     }
 }
-function toggleCols(tId, cls, header, labelA, labelB) { 
-    var table = document.getElementById(tId); 
+function toggleCols(tId, cls, header, labelA, labelB) {
+    var table = document.getElementById(tId);
     if(!table) return;
-    var isActive = table.classList.toggle(cls); 
+    var isActive = table.classList.toggle(cls);
     header.innerHTML = (isActive ? labelB : labelA) + " ⇅";
     localStorage.setItem('toggle_' + tId + '_' + cls, isActive ? "true" : "false");
-    var colIdx = (cls === 'show-ip') ? 1 : 4; 
+    var colIdx = (cls === 'show-ip') ? 1 : 4;
     sortTable(colIdx, tId, true);
 }
 function sortTable(n, tId, keepDir, forceDesc) {
@@ -2267,7 +2267,7 @@ function sortTable(n, tId, keepDir, forceDesc) {
 			if (isRightClick || isNodeModeSaved) {
 				var nodeA = getNodeNum(cellA);
 				var nodeB = getNodeNum(cellB);
-				
+
 				if (nodeA !== nodeB) {
 					return dir === "asc" ? nodeA - nodeB : nodeB - nodeA;
 				}
@@ -2322,7 +2322,7 @@ function openPopout() {
     if (!mCol || !nCol) return;
     mCol = mCol.cloneNode(true);
     nCol = nCol.cloneNode(true);
-    mCol.querySelector('table').id = "popMainTable"; 
+    mCol.querySelector('table').id = "popMainTable";
     nCol.querySelector('table').id = "popNodeTable";
     mCol.querySelectorAll('th').forEach(function(th, i) {
         if(i===1) th.onclick = function() { toggleCols('popMainTable', 'show-ip', this, 'MAC ADDRESS', 'IP ADDRESS'); };
@@ -2334,11 +2334,11 @@ function openPopout() {
         else if(i===4) th.onclick = function() { toggleCols('popNodeTable', 'show-iface', this, 'SSID', 'IFACE'); };
         else th.onclick = function() { sortTable(i, 'popNodeTable'); };
     });
-    body.appendChild(mCol); body.appendChild(nCol); 
+    body.appendChild(mCol); body.appendChild(nCol);
     document.getElementById('popoutModal').style.display = 'flex';
 }
-function closePopout() { 
-    document.getElementById('popoutModal').style.display = 'none'; 
+function closePopout() {
+    document.getElementById('popoutModal').style.display = 'none';
     localStorage.setItem('wifiReportPopoutOpen', 'false');
 }
 /* Right-Click Node-Hostnames */
@@ -2350,8 +2350,8 @@ document.addEventListener('contextmenu', function(e) {
         if (table.closest('#mainCol')) {
             return;
         }
-        e.preventDefault(); 
-        sortTable(0, table.id, false, false); 
+        e.preventDefault();
+        sortTable(0, table.id, false, false);
     }
 });
 /* Right-Click Node-Hostnames */
@@ -2403,7 +2403,7 @@ document.addEventListener('mouseout', function(e) {
         <div class="total-count">Total Wireless Devices: <span class="count-highlight">$GRAND_TOTAL</span></div>
 		<div class="top-controls">
 			<div class="refresh-box" style="padding:0 5px; display:inline-flex; align-items:center;">
-			<button class="btn-manual btn-black-blue" style="border:none; height:100%; line-height:inherit; padding:0 8px;" 
+			<button class="btn-manual btn-black-blue" style="border:none; height:100%; line-height:inherit; padding:0 8px;"
 			onclick="triggerRefresh()">Refresh <span style="color: white;">${RUNTIME}</span></button>
 				<span style="font-size:12px; margin-left:5px; color: #0096ff;">Auto: </span>
 				<select id="refreshRate" onchange="localStorage.setItem('wifiReportAutoRefresh', this.value); initAutoRefresh(parseInt(this.value));" style="background:#000; font-weight:bold; color:white; border:0px solid #444; margin-left:5px; font-size:12px; height:20px;">
@@ -2412,13 +2412,13 @@ document.addEventListener('mouseout', function(e) {
 			</div>
 HTML
 if [ "$NUMBERED_NODE" -gt 0 ]; then
-cat <<BUTTONSHTML >> "$WEB_PAGE"			
+cat <<BUTTONSHTML >> "$WEB_PAGE"
 			<button id="btnStack" class="btn-black-blue active" onclick="switchTab('split')">Stacked</button>
 			<button id="btnAll" class="btn-black-blue" onclick="switchTab('all')">All Devices</button>
 			<button class="btn-black-blue" onclick="openPopout()">Side by Side ⇗</button>
 BUTTONSHTML
 fi
-cat <<HTML >> "$WEB_PAGE"		
+cat <<HTML >> "$WEB_PAGE"
 		</div>
           <div class="grid-container">
           <div id="splitView" style="display:flex; flex-direction:column; gap:15px; width:100%;">
