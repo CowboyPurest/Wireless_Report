@@ -1245,23 +1245,28 @@ get_trend() {
 }
 
 get_mac_address() {
-    mac_address=$(echo "$mac" | tr '[:lower:]' '[:upper:]')
-    if [ "$BACKHAUL" = "yes" ]; then
-        mac_prefix="${mac_address#??}"
-        mac_prefix="${mac_prefix%???}"
-        is_node_pfx=0
-        case "$NODE_PFX" in *"$mac_prefix"*) is_node_pfx=1 ;; esac
-        if [ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]; then
-            mac_address="${CLEAN_IP}_${iface}_${mac_address}"
-        fi
-    fi
-    case " $SEEN_MACS_VAR " in
-        *" $mac_address "*) return 1 ;;
-    esac
-    get_name "$mac_address"
-    SEEN_MACS_VAR="$SEEN_MACS_VAR $mac"
-    return 0
+	mac_address=$(echo "$mac" | tr '[:lower:]' '[:upper:]')
+	mac_prefix="${mac_address#??}"
+	mac_prefix="${mac_prefix%???}"
+	is_node_pfx=0; bh="no"
+	case "$NODE_PFX" in *"$mac_prefix"*) is_node_pfx=1 ;; esac
+	if [ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]; then
+		    [ "$BACKHAUL" != "yes" ] && return 1
+			bh="yes"
+	fi
+	mac_check=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac_address")
+	case " $SEEN_MACS_VAR " in
+		*" $mac_check "*) return 1 ;;
+	esac
+	get_name "$mac_address"
+	mac_final=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
+	case " $SEEN_MACS_VAR " in
+		*" $mac_final "*) return 1 ;;
+	esac
+	SEEN_MACS_VAR="$SEEN_MACS_VAR $mac_final"
+	return 0
 }
+
 
 get_name() {
 	mac="$mac_address"
