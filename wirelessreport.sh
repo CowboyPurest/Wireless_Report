@@ -30,7 +30,7 @@
 # shellcheck shell=sh disable=SC2086,SC2155,SC3043                              #                  
 #===============================================================================#
 
-SCRIPT_VERSION="1.9.3"
+SCRIPT_VERSION="1.9.4"
 INSTALL_DIR="/jffs/addons/wireless_report"
 REPORT_SCRIPT="$INSTALL_DIR/wirelessreport.sh"
 CONFIG="$INSTALL_DIR/webui.conf"
@@ -174,6 +174,8 @@ menu_vars() {
     else
         RH_STAT="${RD}OFF${NC}"
     fi
+	DARKMODE=$(grep "DARKMODE=" "$CONFIG" | cut -d'"' -f2)
+    DM_STAT=$([ "$DARKMODE" = "1" ] && echo -e "${GR}ON${NC}" || echo -e "${RD}OFF${NC}")
 	CUR_RS_HIST=${RS_HIST:-0}
 	CUR_DAYS=${RS_HIST_DAYS:-5}
 	CUR_DATE=${RS_HIST_DATE:-0}
@@ -892,6 +894,7 @@ set_options() {
         echo -e "  $N2  Show Wireless Backhaul: ($B_STAT)                    "
         echo -e "  $N3  Uptime Alert Pulse: ($P_STAT)                        "
 		echo -e "  $N4  Show RSSI History: ($RH_STAT)                        "
+		echo -e "  $N5  Toggle Dark Mode: ($DM_STAT)                         "
 		echo -e "                                                            "
 		echo -e "                                                            "
 		echo -e "  $NU  USB Check                                            "
@@ -1007,6 +1010,15 @@ set_options() {
 				done
 				;;
 				
+			5) 
+				if grep -q "DARKMODE=" "$CONFIG"; then
+					[ "$DARKMODE" = "1" ] && NEW_DM="0" || NEW_DM="1"
+					sed -i "s/DARKMODE=.*/DARKMODE=\"$NEW_DM\"/" "$CONFIG"
+				else
+					echo 'DARKMODE="1"' >> "$CONFIG"
+				fi
+				;;
+			
 			u|U) 
                 echo -e "\n${BL}================= USB Check ======================${NC}"
                 check_storage
@@ -1047,7 +1059,7 @@ pause() {
 }
 
 do_runtime() {
-	[ -z "$RTIME" ] && RTIME="1"
+	: "${RTIME:=1}"
 	if [ "$RTIME" = "1" ]; then
 		END_RUNTIME=$(awk '{print $1}' /proc/uptime)
 		STATS_FILE="$USB_PATH/runtime.db"
@@ -1106,6 +1118,23 @@ header_box() {
         HOVER_TEXT="SCRIPT v$SCRIPT_VERSION"
         V_WIDTH="100px"
     fi
+}
+
+do_darkmode() {
+	: "${DARKMODE:=0}"
+	if [ "$DARKMODE" = "1" ]; then
+		DARKCSS=".section-header { background: transparent !important; color: #fff; font: bold 12px/16px sans-serif; padding: 12px; text-align: center; border: 0 !important; box-shadow: 0 !important; }
+		.report-column { width: 100%; background: transparent !important; border: none !important; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
+		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: transparent !important; vertical-align: middle; text-align: center; }
+		table.report_table tfoot td { border-top: none !important; border-bottom: none !important; box-shadow: none !important; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
+		.sep-line { display: none !important; }"
+	else	
+		DARKCSS=".section-header { background: linear-gradient(to bottom, #171b1f, #354961); color: #ffffff; font-weight: bold; padding: 12px; text-align: center; border-bottom: 1px solid #475a68; }
+		.report-column { width: 100%; background: #1c232b; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
+		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: #1c232b; vertical-align: middle; text-align: center; }
+		table.report_table tfoot td { border-top: 1px solid #475a68; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
+		.sep-line { border: 0; border-top: 1px solid #475a68; margin: 8px -12px; width: calc(100% + 24px); display: block; }"
+	fi
 }
 
 hasta() {
@@ -1288,9 +1317,11 @@ get_ip() {
 	[ -z "$ip" ] && ip=$(arp -an | grep -i "$mac" | awk '{print $2}' | tr -d '()' | head -n 1)
 	case "$name" in *-BH*) ip="" ;; esac
 	if [ -z "$ip" ] || [ "$ip" = "---" ]; then
-		ip="${ROUTER_IP%.*}.$BH_COUNTER"
-		BH_COUNTER=$((BH_COUNTER + 1))
-	fi
+        ip=$(printf "WLB.ACK.HAU.L%02d" "$BH_COUNTER")
+        BH_COUNTER=$((BH_COUNTER + 1))
+        ip_sort="$ip"
+        return 0
+    fi
 	ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
 	ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
     ip="${ip%%<*}"
@@ -1975,7 +2006,7 @@ if [ "$NUMBERED_NODE" -ge 1 ]; then
 else
     TOTAL_DEVICES="Devices: <span class='val-blue'>$MAIN_DEVICE_TOTAL</span>"
 fi
-do_runtime; header_box
+do_runtime; header_box; do_darkmode
 JS_DIFF="${DIFF:-5.00}"
 mv "$NEW_HISTORY" "$HISTORY_DB"
 
@@ -2023,7 +2054,7 @@ cat <<HTML >> "$WEB_PAGE"
 	#countdown { margin-left: 6px; font-weight: bold; }
 	#refreshRate:focus { outline: none; border: none; background: #000; }
 	.grid-container { display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%; }
-	.report-column { width: 100%; background: #1c232b; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
+	${DARKCSS}
 	.report_table tbody tr:hover td { background-color: rgba(0, 123, 255, 0.15) !important; cursor: pointer; }
 	table.report_table { width: 100%; border-collapse: collapse; }
 	table.report_table.show-ip .m-val { display: none !important; } 
@@ -2032,12 +2063,10 @@ cat <<HTML >> "$WEB_PAGE"
 	table.report_table.show-iface .if-val { display: inline !important; color: #64d2ff; }
 	table.report_table thead th { position: sticky; top: 0; z-index: 10; background: linear-gradient(to bottom, #0096ff, #0056b3); color: #fff; padding: 8px; cursor: pointer; text-align: center; border-right: 1px solid rgba(255,255,255,0.1); }
 	table.report_table th:hover { background: #00e5ff; color: #000; text-shadow: 0 0 10px rgba(0,229,255,0.8); }
-	table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: #1c232b; vertical-align: middle; text-align: center; }
 	table.report_table td:nth-child(1) { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: clip; }
 	table.report_table td:nth-child(5) { max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: clip; }
 	table.report_table tr td:first-child { text-align: left; padding-left: 10px; }
 	table.report_table thead th:first-child { text-align: left; padding-left: 10px; }
-	table.report_table tfoot td { border-top: 1px solid #475a68; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
 	.f-res { color: #0096ff; }
 	.pulse-blue { color: #00e5ff !important; font-weight: bold; animation: pulse-blue-glow 2s infinite; }
 	@keyframes pulse-blue-glow { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
@@ -2049,10 +2078,8 @@ cat <<HTML >> "$WEB_PAGE"
 	.stat-hot { color: #ff453a !important; font-weight: bold; }
 	.stat-cool { color: #0096ff !important; font-weight: bold; }
 	.bar-box { font-family: monospace; font-weight: 900; width: 40px; display: inline-block; text-align: right; margin-right: 5px; }
-	.section-header { background: linear-gradient(to bottom, #171b1f, #354961); color: #ffffff; font-weight: bold; padding: 12px; text-align: center; border-bottom: 1px solid #475a68; }
 	.router-branding { color: #0096ff; font-size: 1.4em; font-weight: bold; text-transform: uppercase; display: inline-block; margin-bottom: 4px; }
 	.header-stats-row { display: block; font-size: 14px; color: #f2f2f7; margin-top: 5px; font-weight: bold; white-space: nowrap; width: 100%; overflow: visible !important; }
-	.sep-line { border: 0; border-top: 1px solid #475a68; margin: 8px -12px; width: calc(100% + 24px); display: block; }
 	.m-val, .s-val { display: inline; } .i-val, .if-val { display: none; }
 	.text-24 { color: #ffa500 !important; font-weight: bold; }
 	.text-5g { color: #0096ff !important; font-weight: bold; }
