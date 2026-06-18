@@ -654,11 +654,24 @@ ssh_keys() {
 inject_menu() {
 	source /usr/sbin/helper.sh
 	TAB_LABEL="Wireless Report"
-	[ -f "$CONFIG" ] && sed -i '/^INSTALLED_PAGE=/d' "$CONFIG"
-    nvram get rc_support | grep -q am_addons || { logger -p user.info -t "Wireless_Report" "No addon support!"; exit 5; }
-    [ ! -f "$WEB_PAGE" ] && echo "<html><body>Wireless Report Loading...</body></html>" > "$WEB_PAGE"
+	if [ -f "$CONFIG" ]; then
+		sed -i '/^INSTALLED_PAGE=/d' "$CONFIG"
+	else
+		touch "$CONFIG"
+	fi
+    nvram get rc_support | grep -q am_addons
+	if [ $? != 0 ]; then
+		logger -p user.info -t "Wireless Report:" "This firmware does not support addons!"
+		exit 5
+	fi
+    if [ ! -f "$WEB_PAGE" ]; then
+		echo "<html><body>Wireless Report Loading...</body></html>" > "$WEB_PAGE"
+	fi
 	am_get_webui_page "$WEB_PAGE"
-	[ "$am_webui_page" = "none" ] && { logger -p user.info -t "Wireless_Report" "Registration failed"; exit 5; }
+	if [ "$am_webui_page" = "none" ]; then
+		logger -p user.info -t "Wireless Report:" "Unable to install Wireless Report"
+		exit 5
+	fi
 	cp "$WEB_PAGE" "/www/user/$am_webui_page" 2>/dev/null
 	echo "INSTALLED_PAGE=$am_webui_page" >> "$CONFIG"
 	if [ ! -f "$TEMP_MENU" ]; then
@@ -1198,26 +1211,22 @@ get_trend() {
 }
 
 get_mac_address() {
-	mac_address=$(echo "$mac" | tr '[:lower:]' '[:upper:]')
-	mac_prefix="${mac_address#??}"
-	mac_prefix="${mac_prefix%???}"
-	is_node_pfx=0; bh="no"
-	case "$NODE_PFX" in *"$mac_prefix"*) is_node_pfx=1 ;; esac
-	if [ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]; then
-		    [ "$BACKHAUL" != "yes" ] && return 1
-			bh="yes"
-	fi
-	mac_check=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac_address")
-	case " $SEEN_MACS_VAR " in
-		*" $mac_check "*) return 1 ;;
-	esac
-	get_name "$mac_address"
-	mac_final=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
-	case " $SEEN_MACS_VAR " in
-		*" $mac_final "*) return 1 ;;
-	esac
-	SEEN_MACS_VAR="$SEEN_MACS_VAR $mac_final"
-	return 0
+    mac_address=$(echo "$mac" | tr '[:lower:]' '[:upper:]')
+    if [ "$BACKHAUL" = "yes" ]; then
+        mac_prefix="${mac_address#??}"
+        mac_prefix="${mac_prefix%???}"
+        is_node_pfx=0
+        case "$NODE_PFX" in *"$mac_prefix"*) is_node_pfx=1 ;; esac
+        if [ "$mac_prefix" = "$MAIN_PFX" ] || [ "$is_node_pfx" -eq 1 ]; then
+            mac_address="${CLEAN_IP}_${iface}_${mac_address}"
+        fi
+    fi
+    case " $SEEN_MACS_VAR " in
+        *" $mac_address "*) return 1 ;;
+    esac
+    get_name "$mac_address"
+    SEEN_MACS_VAR="$SEEN_MACS_VAR $mac"
+    return 0
 }
 
 get_name() {
