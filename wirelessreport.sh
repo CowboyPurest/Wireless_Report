@@ -1851,7 +1851,7 @@ MAIN_LABEL="<span class='router-branding'>$MAIN_NAME</span>"
 > "$SEEN_MACS"; > "$NEW_HISTORY"
 SEEN_MACS_VAR=""
 NL=$'\n'; MAIN_ROWS=""; NODE_ROWS=""; ALL_ROWS=""
-T_EXC=0; T_GOOD=0; T_FAIR=0; T_POOR=0; MAIN_DEVICE_TOTAL=0; NODE_DEVICE_TOTAL=0; BH_COUNTER=250
+T_EXC=0; T_GOOD=0; T_FAIR=0; T_POOR=0; MAIN_DEVICE_TOTAL=0; NODE_DEVICE_TOTAL=0; BH_COUNTER=1
 WL_BASES=$(nvram get wl_ifnames)
 WL0_PHYS=$(echo "$WL_BASES" | awk '{print $1}')
 WL1_PHYS=$(echo "$WL_BASES" | awk '{print $2}')
