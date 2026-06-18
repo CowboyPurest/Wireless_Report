@@ -1094,8 +1094,8 @@ ssh_error() {
 }
 
 header_box() {
-    LOCAL_HASH=$(sha256sum "$0" | awk '{print $1}'
-    REMOTE_HASH=$(curl -sfL --retry 3 "$GITHUB" | sha256sum | awk '{print $1}'
+    LOCAL_HASH=$(sha256sum "$0" | awk '{print $1}')
+    REMOTE_HASH=$(curl -sfL --retry 3 "$GITHUB" | sha256sum | awk '{print $1}')
     if [ -n "$REMOTE_VER" ] && [ "$REMOTE_VER" != "$SCRIPT_VERSION" ]; then
         HOVER_TEXT="Current Script v$SCRIPT_VERSION <br> New Version v$REMOTE_VER available"
         V_WIDTH="190px"
