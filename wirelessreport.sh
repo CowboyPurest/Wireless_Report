@@ -660,11 +660,7 @@ inject_menu() {
 	am_get_webui_page "$WEB_PAGE"
 	[ "$am_webui_page" = "none" ] && { logger -p user.info -t "Wireless_Report" "Registration failed"; exit 5; }
 	cp "$WEB_PAGE" "/www/user/$am_webui_page" 2>/dev/null
-	if [ -f "$CONFIG" ]; then
-		echo "INSTALLED_PAGE=$am_webui_page" >> "$CONFIG"
-	else
-		echo "INSTALLED_PAGE=$am_webui_page" > "$CONFIG"
-	fi
+	echo "INSTALLED_PAGE=$am_webui_page" >> "$CONFIG"
 	if [ ! -f "$TEMP_MENU" ]; then
 		cp "$SYSTEM_MENU" /tmp/
 		mount -o bind "$TEMP_MENU" "$SYSTEM_MENU"
@@ -1503,7 +1499,6 @@ get_bars_rssi_style() {
 }
 
 get_max_column() {
-	# Maximum Column Characters
 	[ ${#name} -gt 20 ] && name="${name:0:20}"
 	[ ${#mac} -gt 17 ] && mac="${mac:0:17}"
 	[ ${#ip} -gt 15 ] && ip="${ip:0:15}"
@@ -2205,8 +2200,6 @@ function sortTable(n, tId, keepDir, forceDesc) {
             h.innerHTML = "BAND<span style='font-size:14px; font-weight:bold; margin-left:2px;'>ᵐʰᶻ</span>";
         } else if (idx === 4) {
             h.innerHTML = table.classList.contains('show-iface') ? "IFACE ⇵" : "SSID ⇵";
-        } else {
-            h.innerHTML = h.innerHTML.replace(/[▼▲▾▴]/g, "").trim();
         }
     });
     rows.sort(function(a, b) {
