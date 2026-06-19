@@ -1576,7 +1576,6 @@ get_row() {
 }
 
 final_chk() {
-	
 	[ -z "$ssid" ] && ssid="Wireless"
     if [ "$rssi" -ge 0 ] && [ "$rssi" -le 1 ]; then
         rssi=-54
@@ -2005,17 +2004,19 @@ NODE_TOTALS="${NODE_TOTALS}${NODE_TOTALS:+$DOT}<span style='color:$NODE_COLOR;'>
     fi
 done
 GRAND_TOTAL=$((MAIN_DEVICE_TOTAL + NODE_DEVICE_TOTAL))
-if [ "$NUMBERED_NODE" -gt 3 ]; then
-    LAYOUT_STYLE="text-align: left; justify-content: flex-start;"
-else
-    LAYOUT_STYLE="text-align: center; justify-content: center;"
-fi
 BRAND_LINE_ALL="<span class='router-branding'>$MAIN_NAME</span>&ensp;$N_NAMES"
 [ "$NUMBERED_NODE" -gt 0 ] && R_TITLE="Wireless Report AiMesh" || R_TITLE="Wireless Report"
 if [ "$NUMBERED_NODE" -ge 1 ]; then
     TOTAL_DEVICES="Devices: <span class='val-blue'>$GRAND_TOTAL</span> <span class='dash-sep'>—›</span> <span class='val-blue'>$MAIN_DEVICE_TOTAL</span>$DOT$NODE_TOTALS"
 else
     TOTAL_DEVICES="Devices: <span class='val-blue'>$MAIN_DEVICE_TOTAL</span>"
+fi
+if [ "$NUMBERED_NODE" -gt 3 ]; then
+    LAYOUT_STYLE="text-align: left; justify-content: flex-start;"
+	LAYOUT_STYLE2="text-align: left; justify-content: flex-start; font-size: 10px;"
+else
+    LAYOUT_STYLE="text-align: center; justify-content: center;"
+	LAYOUT_STYLE2="text-align: center; justify-content: center;"
 fi
 do_runtime; header_box; do_darkmode
 JS_DIFF="${DIFF:-5.00}"
@@ -2499,7 +2500,7 @@ cat <<HTML >> "$WEB_PAGE"
                 <th onclick="sortTable(6, 'allTable')">UPTIME</th>
               </tr></thead>
               <tbody>$ALL_ROWS</tbody>
-              <tfoot><tr><td colspan="7" style="$LAYOUT_STYLE">Uptime: $TOTAL_UPTIME&ensp;Reboot: $TOTAL_BOOTTIME</td></tr></tfoot>
+              <tfoot><tr><td colspan="7" style="$LAYOUT_STYLE2">Uptime: $TOTAL_UPTIME&ensp;Reboot: $TOTAL_BOOTTIME</td></tr></tfoot>
             </table>
           </div>
         </div>
