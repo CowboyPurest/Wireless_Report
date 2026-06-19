@@ -1324,10 +1324,7 @@ get_ip() {
 	[ -z "$ip" ] && ip=$(arp -an | grep -i "$mac" | awk '{print $2}' | tr -d '()' | head -n 1)
 	case "$name" in *-BH*) ip="" ;; esac
 	if [ -z "$ip" ] || [ "$ip" = "---" ]; then
-        ip=$(printf "WLB.ACK.HAU.L%02d" "$BH_COUNTER")
-        BH_COUNTER=$((BH_COUNTER + 1))
-        ip_sort="$ip"
-        return 0
+		ip=$(printf "900.000.000.00%d" "$NUMBERED_NODE")
     fi
 	ip=$(echo "$ip" | tr ' \t' '\n' | grep -v '^$' | head -n 1)
 	ip=$(printf "%s.%03d" "${ip%.*}" "${ip##*.}")
@@ -1851,7 +1848,7 @@ MAIN_LABEL="<span class='router-branding'>$MAIN_NAME</span>"
 > "$SEEN_MACS"; > "$NEW_HISTORY"
 SEEN_MACS_VAR=""
 NL=$'\n'; MAIN_ROWS=""; NODE_ROWS=""; ALL_ROWS=""
-T_EXC=0; T_GOOD=0; T_FAIR=0; T_POOR=0; MAIN_DEVICE_TOTAL=0; NODE_DEVICE_TOTAL=0; BH_COUNTER=1
+T_EXC=0; T_GOOD=0; T_FAIR=0; T_POOR=0; MAIN_DEVICE_TOTAL=0; NODE_DEVICE_TOTAL=0
 WL_BASES=$(nvram get wl_ifnames)
 WL0_PHYS=$(echo "$WL_BASES" | awk '{print $1}')
 WL1_PHYS=$(echo "$WL_BASES" | awk '{print $2}')
