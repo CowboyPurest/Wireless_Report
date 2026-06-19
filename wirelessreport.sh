@@ -1257,7 +1257,7 @@ get_mac_address() {
 			bh="yes"
 	fi
 	get_name "$mac_address"
-	mac_check=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac_address")
+	mac_check=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac")
 	case " $SEEN_MACS_VAR " in
 		*" $mac_check "*) return 1 ;;
 	esac
