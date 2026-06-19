@@ -955,16 +955,16 @@ set_options() {
                     echo -e "${BL}          RSSI History Configuration          ${NC}"
                     echo -e "${BL}==============================================${NC}"
                     echo -e "             Current Status: [$CS]                      "
-                    echo -e "       Depth: [$CD] days | Timestamps: [$TS]           "
+                    echo -e "       Depth: [$CD] days | Timestamps: [$TS]            "
                     echo -e "${BL}==============================================${NC}"
-                    echo -e "                                                       "
-                    echo -e " $N1 Toggle RSSI History ($ON/$OFF)                    "
-                    echo -e " $N2 Set History Depth                                 "
-                    echo -e " $N3 Toggle Timestamps ($ON/$OFF)                      "
-                    echo -e "                                                       "
-                    echo -e " $NQ Cancel and Discard Changes                        "
-                    echo -e " $NE Exit and Save Changes                             "
-                    echo -e "                                                       "
+                    echo -e "                                                        "
+                    echo -e " $N1 Toggle RSSI History ($ON/$OFF)                     "
+                    echo -e " $N2 Set History Depth                                  "
+                    echo -e " $N3 Toggle Timestamps ($ON/$OFF)                       "
+                    echo -e "                                                        "
+                    echo -e " $NQ Cancel and Discard Changes                         "
+                    echo -e " $NE Exit and Save Changes                              "
+                    echo -e "                                                        "
                     echo -e "${BL}==============================================${NC}"
                     echo -ne "\n ${BL}Selection:${NC} "
                     read sub_choice
@@ -1227,10 +1227,10 @@ get_mac_address() {
 			bh="yes"
 	fi
 	if [ "$bh" = "yes" ]; then
-			mac_check="${CLEAN_IP}_${iface}_${mac_address}"
-		else
-			mac_check="$mac_address"
-		fi
+		mac_check="${CLEAN_IP}_${iface}_${mac_address}"
+	else
+		mac_check="$mac_address"
+	fi
 	case " $SEEN_MACS_VAR " in
 		*" $mac_check "*) return 1 ;;
 	esac
@@ -1238,10 +1238,10 @@ get_mac_address() {
 	get_name "$mac_address"
 	
 	if [ "$bh" = "yes" ]; then
-			mac_final="${CLEAN_IP}_${iface}_${mac}"
-		else
-			mac_final="$mac"
-		fi
+		mac_final="${CLEAN_IP}_${iface}_${mac}"
+	else
+		mac_final="$mac"
+	fi
 	case " $SEEN_MACS_VAR " in
 		*" $mac_final "*) return 1 ;;
 	esac
