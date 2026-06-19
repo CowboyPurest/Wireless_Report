@@ -1256,11 +1256,11 @@ get_mac_address() {
 		    [ "$BACKHAUL" != "yes" ] && return 1
 			bh="yes"
 	fi
+	get_name "$mac_address"
 	mac_check=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac_address}" || echo "$mac_address")
 	case " $SEEN_MACS_VAR " in
 		*" $mac_check "*) return 1 ;;
 	esac
-	get_name "$mac_address"
 	mac_final=$([ "$bh" = "yes" ] && echo "${CLEAN_IP}_${iface}_${mac}" || echo "$mac")
 	case " $SEEN_MACS_VAR " in
 		*" $mac_final "*) return 1 ;;
