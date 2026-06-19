@@ -2482,12 +2482,15 @@ fi
 cat <<HTML >> "$WEB_PAGE"
           </div>
           <div id="allCol" class="report-column">
-            <div class="section-header" style="$LAYOUT_STYLE">
-              $BRAND_LINE_ALL<br>
-              <span style="font-size:11px; font-weight:bold;">Updated: $CUR_TIME</span>
-              <hr class="sep-line">
-              <div class="header-stats-row">Temp: $TOTAL_TEMP&ensp;Load: $TOTAL_LOAD&ensp;$TOTAL_DEVICES</div>
-            </div>
+				<div class="brand-line" style="text-align: center; justify-content: center;">
+					$BRAND_LINE_ALL<br>
+					<span style="font-size:11px; font-weight:bold;">Updated: $CUR_TIME</span>
+				</div>
+				<hr class="sep-line">
+				<div class="header-stats-row" style="$LAYOUT_STYLE">
+					Temp: $TOTAL_TEMP&ensp;Load: $TOTAL_LOAD&ensp;$TOTAL_DEVICES
+				</div>
+			</div>
             <table id="allTable" class="report_table show-ip">
               <thead><tr>
                 <th onclick="sortTable(0, 'allTable')">HOSTNAME</th>
