@@ -1279,7 +1279,6 @@ get_mac_address() {
 	return 0
 }
 
-
 get_name() {
 	mac="$mac_address"
 	name=""
@@ -2022,11 +2021,11 @@ else
     TOTAL_DEVICES="Devices: <span class='val-blue'>$MAIN_DEVICE_TOTAL</span>"
 fi
 if [ "$NUMBERED_NODE" -gt 3 ]; then
-    LAYOUT_STYLE="text-align: left; justify-content: flex-start;"
-	LAYOUT_STYLE2="text-align: left; justify-content: flex-start; font-size: 10px;"
+    TEMP_STYLE="text-align: left; justify-content: flex-start;"
+	UPTIME_STYLE="text-align: center; justify-content: flex-start; font-size: 10px;"
 else
-    LAYOUT_STYLE="text-align: center; justify-content: center;"
-	LAYOUT_STYLE2="text-align: center; justify-content: center;"
+    TEMP_STYLE="text-align: center; justify-content: center;"
+	UPTIME_STYLE="text-align: center; justify-content: center;"
 fi
 do_runtime; header_box; do_darkmode
 JS_DIFF="${DIFF:-5.00}"
@@ -2497,7 +2496,7 @@ cat <<HTML >> "$WEB_PAGE"
               $BRAND_LINE_ALL<br>
               <span style="font-size:11px; font-weight:bold;">Updated: $CUR_TIME</span>
               <hr class="sep-line">
-              <div class="header-stats-row" style="$LAYOUT_STYLE">Temp: $TOTAL_TEMP&ensp;Load: $TOTAL_LOAD&ensp;$TOTAL_DEVICES</div>
+              <div class="header-stats-row" style="$TEMP_STYLE">Temp: $TOTAL_TEMP&ensp;Load: $TOTAL_LOAD&ensp;$TOTAL_DEVICES</div>
             </div>
             <table id="allTable" class="report_table show-ip">
               <thead><tr>
@@ -2510,7 +2509,7 @@ cat <<HTML >> "$WEB_PAGE"
                 <th onclick="sortTable(6, 'allTable')">UPTIME</th>
               </tr></thead>
               <tbody>$ALL_ROWS</tbody>
-              <tfoot><tr><td colspan="7" style="$LAYOUT_STYLE2">Uptime: $TOTAL_UPTIME&ensp;Reboot: $TOTAL_BOOTTIME</td></tr></tfoot>
+              <tfoot><tr><td colspan="7" style="$UPTIME_STYLE">Uptime: $TOTAL_UPTIME&ensp;Reboot: $TOTAL_BOOTTIME</td></tr></tfoot>
             </table>
           </div>
         </div>
