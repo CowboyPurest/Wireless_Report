@@ -893,18 +893,18 @@ set_options() {
         echo -e "  $N1  Show Runtime Tracking: ($R_STAT)                     "
         echo -e "  $N2  Show Wireless Backhaul: ($B_STAT)                    "
         echo -e "  $N3  Uptime Alert Pulse: ($P_STAT)                        "
-		echo -e "  $N4  Show RSSI History: ($RH_STAT)                        "
-		echo -e "  $N5  Toggle Dark Mode: ($DM_STAT)                         "
-		echo -e "                                                            "
-		echo -e "                                                            "
-		echo -e "  $NU  USB Check                                            "
-        echo -e "  $NV  View CONFIG                                          "
-		echo -e "  $NE  Exit to main menu                                    "
+        echo -e "  $N4  Show RSSI History: ($RH_STAT)                        "
+        echo -e "  $N5  Toggle Dark Mode: ($DM_STAT)                         "
         echo -e "                                                            "
-		echo -e "${BL}==================================================${NC}"
-		printf "\n ${BL}Selection:${NC} "
+        echo -e "                                                            "
+        echo -e "  $NU  USB Check                                            "
+        echo -e "  $NV  View CONFIG                                          "
+        echo -e "  $NE  Exit to main menu                                    "
+        echo -e "                                                            "
+        echo -e "${BL}==================================================${NC}"
+        printf "\n ${BL}Selection:${NC} "
         read t_choice
-		case "$t_choice" in
+        case "$t_choice" in
             1)
                 if grep -q "RTIME=" "$CONFIG"; then
                     [ "$RTIME" = "1" ] && sed -i 's/RTIME=.*/RTIME="0"/' "$CONFIG" || sed -i 's/RTIME=.*/RTIME="1"/' "$CONFIG"
@@ -946,88 +946,59 @@ set_options() {
                 pause
                 ;;
             4)
-				while true; do
-					CS="$([ "$CUR_RS_HIST" = "1" ] && echo -e "$ON" || echo -e "$OFF")"
-					TS="$([ "$CUR_DATE" = "1" ] && echo $ON || echo $OFF)"
-					CD="${GR}$CUR_DAYS${NC}"
-					clear
-					echo -e "${BL}==============================================${NC}"
-					echo -e "${BL}          RSSI History Configuration          ${NC}"
-					echo -e "${BL}==============================================${NC}"
-					echo -e "             Current Status: [$CS]                      "
-					echo -e "       Depth: [$CD] days | Timestamps: [$TS]            "
-					echo -e "${BL}==============================================${NC}"
-					echo -e "                                                        "
-					echo -e " $N1 Toggle RSSI History ($ON/$OFF)                     "
-					echo -e " $N2 Set History Depth                                  "
-					echo -e " $N3 Toggle Timestamps ($ON/$OFF)                       "
-					echo -e "                                                        "
-					echo -e " $NQ Cancel and Discard Changes                         "
-					echo -e " $NE Exit and Save Changes                              "
-					echo -e "                                                        "
-					echo -e "${BL}==============================================${NC}"
-					echo -ne "\n ${BL}Selection:${NC} "
-					read -r sub_choice
-					case "$sub_choice" in
-						 1)
-							[ "$CUR_RS_HIST" = "1" ] && CUR_RS_HIST="0" || CUR_RS_HIST="1" ;;
-
-						 2)
-							echo -ne "\n Enter new depth (${BL}5-20${NC}) [Current: $CD]: "
-							read -r new_days
-							case "$new_days" in
-								5|6|7|8|9|1[0-9]|20) CUR_DAYS="$new_days" ;;
-								*) echo -e "${RD}[!] Invalid: Use 5-20${NC}"; sleep 1 ;;
-							esac
-							;;
-
-						 3) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
-
-						 c|C)
-							echo -e "\n${RD}[!] Changes discarded.${NC}"
-							pause
-							break
-							;;
-
-						 e|E)
-							sed -i "s/^RS_HIST=.*/RS_HIST=\"$CUR_RS_HIST\"/" "$CONFIG"
-							if grep -q "^RS_HIST_DAYS=" "$CONFIG"; then
-								sed -i "s/^RS_HIST_DAYS=.*/RS_HIST_DAYS=\"$CUR_DAYS\"/" "$CONFIG"
-							else
-								echo "RS_HIST_DAYS=\"$CUR_DAYS\"" >> "$CONFIG"
-							fi
-							if grep -q "^RS_HIST_DATE=" "$CONFIG"; then
-								sed -i "s/^RS_HIST_DATE=.*/RS_HIST_DATE=\"$CUR_DATE\"/" "$CONFIG"
-							else
-								echo "RS_HIST_DATE=\"$CUR_DATE\"" >> "$CONFIG"
-							fi
-							[ -f "$HISTORY_DB" ] && rm -f "$HISTORY_DB"
-							echo -e "\n${GR}[+] Configuration saved and DB cleared.${NC}"
-							pause
-							break
-							;;
-					esac
-				done
-				;;
-
-			5)
-				if grep -q "DARKMODE=" "$CONFIG"; then
-					[ "$DARKMODE" = "1" ] && NEW_DM="0" || NEW_DM="1"
-					sed -i "s/DARKMODE=.*/DARKMODE=\"$NEW_DM\"/" "$CONFIG"
-				else
-					echo 'DARKMODE="1"' >> "$CONFIG"
-				fi
-				;;
-
-			u|U)
+                while true; do
+                    CS="$([ "$CUR_RS_HIST" = "1" ] && echo -e "$ON" || echo -e "$OFF")"
+                    TS="$([ "$CUR_DATE" = "1" ] && echo $ON || echo $OFF)"
+                    CD="${GR}$CUR_DAYS${NC}"
+                    clear
+                    echo -e "${BL}==============================================${NC}"
+                    echo -e "${BL}          RSSI History Configuration          ${NC}"
+                    echo -e "${BL}==============================================${NC}"
+                    echo -e "             Current Status: [$CS]                      "
+                    echo -e "       Depth: [$CD] days | Timestamps: [$TS]           "
+                    echo -e "${BL}==============================================${NC}"
+                    echo -e "                                                       "
+                    echo -e " $N1 Toggle RSSI History ($ON/$OFF)                    "
+                    echo -e " $N2 Set History Depth                                 "
+                    echo -e " $N3 Toggle Timestamps ($ON/$OFF)                      "
+                    echo -e "                                                       "
+                    echo -e " $NQ Cancel and Discard Changes                        "
+                    echo -e " $NE Exit and Save Changes                             "
+                    echo -e "                                                       "
+                    echo -e "${BL}==============================================${NC}"
+                    echo -ne "\n ${BL}Selection:${NC} "
+                    read sub_choice
+                    case "$sub_choice" in
+                        1) [ "$CUR_RS_HIST" = "1" ] && CUR_RS_HIST="0" || CUR_RS_HIST="1" ;;
+                        2) echo -ne "\n Enter new depth (${BL}5-20${NC}) [Current: $CD]: "
+                           read new_days
+                           case "$new_days" in 5|6|7|8|9|1[0-9]|20) CUR_DAYS="$new_days" ;; *) echo -e "${RD}[!] Invalid: Use 5-20${NC}"; sleep 1 ;; esac ;;
+                        3) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
+                        c|C) echo -e "\n${RD}[!] Changes discarded.${NC}"; pause; break ;;
+                        e|E) sed -i "s/^RS_HIST=.*/RS_HIST=\"$CUR_RS_HIST\"/" "$CONFIG"
+                             if grep -q "^RS_HIST_DAYS=" "$CONFIG"; then sed -i "s/^RS_HIST_DAYS=.*/RS_HIST_DAYS=\"$CUR_DAYS\"/" "$CONFIG"; else echo "RS_HIST_DAYS=\"$CUR_DAYS\"" >> "$CONFIG"; fi
+                             if grep -q "^RS_HIST_DATE=" "$CONFIG"; then sed -i "s/^RS_HIST_DATE=.*/RS_HIST_DATE=\"$CUR_DATE\"/" "$CONFIG"; else echo "RS_HIST_DATE=\"$CUR_DATE\"" >> "$CONFIG"; fi
+                             [ -f "$HISTORY_DB" ] && rm -f "$HISTORY_DB"
+                             echo -e "\n${GR}[+] Configuration saved and DB cleared.${NC}"; pause; break ;;
+                    esac
+                done
+                ;;
+            5)
+                if grep -q "DARKMODE=" "$CONFIG"; then
+                    [ "$DARKMODE" = "1" ] && NEW_DM="0" || NEW_DM="1"
+                    sed -i "s/DARKMODE=.*/DARKMODE=\"$NEW_DM\"/" "$CONFIG"
+                else
+                    echo 'DARKMODE="1"' >> "$CONFIG"
+                fi
+                ;;
+            u|U)
                 echo -e "\n${BL}================= USB Check ======================${NC}"
                 check_storage
                 echo -e "\n${BL}==================================================${NC}"
                 pause
                 continue
                 ;;
-
-			v|V)
+            v|V)
                 echo -e "\n${BL}================== CONFIG ======================${NC}\n"
                 if [ -f "$CONFIG" ]; then
                     cat "$CONFIG"
@@ -1040,7 +1011,7 @@ set_options() {
                 ;;
             e|E)
                 sort -u -o "$CONFIG" "$CONFIG"
-				return
+                return
                 ;;
             *)
                 continue
@@ -1126,16 +1097,15 @@ do_darkmode() {
 		DARKCSS=".section-header { background: transparent !important; color: #fff; font: bold 12px/16px sans-serif; padding: 12px; text-align: center; border: 0 !important; box-shadow: 0 !important; }
 		.header-stats-row { margin-top: 15px !important; }
 		.modal-grid .section-header { min-height: 85px !important; }
-		.report-column { width: 100%; background: transparent !important; border: none !important; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
+		.report-column { width: 100%; background: transparent !important; border: 1px solid #475a68; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
 		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: transparent !important; vertical-align: middle; text-align: center; }
-		table.report_table tfoot td { border-top: none !important; border-bottom: none !important; box-shadow: none !important; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
-		.sep-line { display: none !important; }"
+		table.report_table tfoot td { border-top: none !important; border-bottom: none !important; box-shadow: none !important; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }"
+		
 	else
 		DARKCSS=".section-header { background: linear-gradient(to bottom, #171b1f, #354961); color: #ffffff; font-weight: bold; padding: 12px; text-align: center; border-bottom: 1px solid #475a68; }
 		.report-column { width: 100%; background: #1c232b; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
 		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: #1c232b; vertical-align: middle; text-align: center; }
-		table.report_table tfoot td { border-top: 1px solid #475a68; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
-		.sep-line { border: 0; border-top: 1px solid #475a68; margin: 8px -12px; width: calc(100% + 24px); display: block; }"
+		table.report_table tfoot td { border-top: 1px solid #475a68; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }"
 	fi
 }
 
@@ -2089,6 +2059,7 @@ cat <<HTML >> "$WEB_PAGE"
 	table.report_table tr td:first-child { text-align: left; padding-left: 10px; }
 	table.report_table thead th:first-child { text-align: left; padding-left: 10px; }
 	.f-res { color: #0096ff; }
+	.sep-line { border: 0; border-top: 1px solid #475a68; margin: 8px -12px; width: calc(100% + 24px); display: block; }
 	.pulse-blue { color: #00e5ff !important; font-weight: bold; animation: pulse-blue-glow 2s infinite; }
 	@keyframes pulse-blue-glow { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 	.new-device-row { background-color: rgba(0, 229, 255, 0.1) !important; animation: pulse-blue-glow 2s infinite; }
