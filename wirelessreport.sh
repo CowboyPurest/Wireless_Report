@@ -969,10 +969,10 @@ set_options() {
 					echo -ne "\n ${BL}Selection:${NC} "
 					read -r sub_choice
 					case "$sub_choice" in
-						 1)
+						1)
 							[ "$CUR_RS_HIST" = "1" ] && CUR_RS_HIST="0" || CUR_RS_HIST="1" ;;
 
-						 2)
+						2)
 							echo -ne "\n Enter new depth (${BL}5-20${NC}) [Current: $CD]: "
 							read -r new_days
 							case "$new_days" in
@@ -981,15 +981,15 @@ set_options() {
 							esac
 							;;
 
-						 3) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
+						3) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
 
-						 c|C)
+						c|C)
 							echo -e "\n${RD}[!] Changes discarded.${NC}"
 							pause
 							break
 							;;
 
-						 e|E)
+						e|E)
 							sed -i "s/^RS_HIST=.*/RS_HIST=\"$CUR_RS_HIST\"/" "$CONFIG"
 							if grep -q "^RS_HIST_DAYS=" "$CONFIG"; then
 								sed -i "s/^RS_HIST_DAYS=.*/RS_HIST_DAYS=\"$CUR_DAYS\"/" "$CONFIG"
@@ -1006,47 +1006,45 @@ set_options() {
 							pause
 							break
 							;;
+						5)
+							if grep -q "DARKMODE=" "$CONFIG"; then
+								[ "$DARKMODE" = "1" ] && NEW_DM="0" || NEW_DM="1"
+								sed -i "s/DARKMODE=.*/DARKMODE=\"$NEW_DM\"/" "$CONFIG"
+							else
+								echo 'DARKMODE="1"' >> "$CONFIG"
+							fi
+							;;
+
+						u|U)
+							echo -e "\n${BL}================= USB Check ======================${NC}"
+							check_storage
+							echo -e "\n${BL}==================================================${NC}"
+							pause
+							continue
+							;;
+
+						v|V)
+							echo -e "\n${BL}================== CONFIG ======================${NC}\n"
+							if [ -f "$CONFIG" ]; then
+								cat "$CONFIG"
+							else
+								echo -e "${GR}[!] No CONFIG file found.${NC}"
+							fi
+							echo -e "\n${BL}==================================================${NC}"
+							pause
+							continue
+							;;
+						e|E)
+							sort -u -o "$CONFIG" "$CONFIG"
+							return
+							;;
+						*)
+							continue
+							;;
 					esac
 				done
-				;;
-
-			5)
-				if grep -q "DARKMODE=" "$CONFIG"; then
-					[ "$DARKMODE" = "1" ] && NEW_DM="0" || NEW_DM="1"
-					sed -i "s/DARKMODE=.*/DARKMODE=\"$NEW_DM\"/" "$CONFIG"
-				else
-					echo 'DARKMODE="1"' >> "$CONFIG"
-				fi
-				;;
-
-			u|U)
-                echo -e "\n${BL}================= USB Check ======================${NC}"
-                check_storage
-                echo -e "\n${BL}==================================================${NC}"
-                pause
-                continue
-                ;;
-
-			v|V)
-                echo -e "\n${BL}================== CONFIG ======================${NC}\n"
-                if [ -f "$CONFIG" ]; then
-                    cat "$CONFIG"
-                else
-                    echo -e "${GR}[!] No CONFIG file found.${NC}"
-                fi
-                echo -e "\n${BL}==================================================${NC}"
-                pause
-                continue
-                ;;
-            e|E)
-                sort -u -o "$CONFIG" "$CONFIG"
-				return
-                ;;
-            *)
-                continue
-                ;;
-        esac
-    done
+		esac
+	done	
 }
 
 restart_httpd() {
