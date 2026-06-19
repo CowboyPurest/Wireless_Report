@@ -969,10 +969,10 @@ set_options() {
 					echo -ne "\n ${BL}Selection:${NC} "
 					read -r sub_choice
 					case "$sub_choice" in
-						1)
+						 1)
 							[ "$CUR_RS_HIST" = "1" ] && CUR_RS_HIST="0" || CUR_RS_HIST="1" ;;
 
-						2)
+						 2)
 							echo -ne "\n Enter new depth (${BL}5-20${NC}) [Current: $CD]: "
 							read -r new_days
 							case "$new_days" in
@@ -981,15 +981,15 @@ set_options() {
 							esac
 							;;
 
-						3) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
+						 3) [ "$CUR_DATE" = "1" ] && CUR_DATE="0" || CUR_DATE="1" ;;
 
-						c|C)
+						 c|C)
 							echo -e "\n${RD}[!] Changes discarded.${NC}"
 							pause
 							break
 							;;
 
-						e|E)
+						 e|E)
 							sed -i "s/^RS_HIST=.*/RS_HIST=\"$CUR_RS_HIST\"/" "$CONFIG"
 							if grep -q "^RS_HIST_DAYS=" "$CONFIG"; then
 								sed -i "s/^RS_HIST_DAYS=.*/RS_HIST_DAYS=\"$CUR_DAYS\"/" "$CONFIG"
@@ -1006,45 +1006,47 @@ set_options() {
 							pause
 							break
 							;;
-						5)
-							if grep -q "DARKMODE=" "$CONFIG"; then
-								[ "$DARKMODE" = "1" ] && NEW_DM="0" || NEW_DM="1"
-								sed -i "s/DARKMODE=.*/DARKMODE=\"$NEW_DM\"/" "$CONFIG"
-							else
-								echo 'DARKMODE="1"' >> "$CONFIG"
-							fi
-							;;
-
-						u|U)
-							echo -e "\n${BL}================= USB Check ======================${NC}"
-							check_storage
-							echo -e "\n${BL}==================================================${NC}"
-							pause
-							continue
-							;;
-
-						v|V)
-							echo -e "\n${BL}================== CONFIG ======================${NC}\n"
-							if [ -f "$CONFIG" ]; then
-								cat "$CONFIG"
-							else
-								echo -e "${GR}[!] No CONFIG file found.${NC}"
-							fi
-							echo -e "\n${BL}==================================================${NC}"
-							pause
-							continue
-							;;
-						e|E)
-							sort -u -o "$CONFIG" "$CONFIG"
-							return
-							;;
-						*)
-							continue
-							;;
 					esac
 				done
-		esac
-	done	
+				;;
+
+			5)
+				if grep -q "DARKMODE=" "$CONFIG"; then
+					[ "$DARKMODE" = "1" ] && NEW_DM="0" || NEW_DM="1"
+					sed -i "s/DARKMODE=.*/DARKMODE=\"$NEW_DM\"/" "$CONFIG"
+				else
+					echo 'DARKMODE="1"' >> "$CONFIG"
+				fi
+				;;
+
+			u|U)
+                echo -e "\n${BL}================= USB Check ======================${NC}"
+                check_storage
+                echo -e "\n${BL}==================================================${NC}"
+                pause
+                continue
+                ;;
+
+			v|V)
+                echo -e "\n${BL}================== CONFIG ======================${NC}\n"
+                if [ -f "$CONFIG" ]; then
+                    cat "$CONFIG"
+                else
+                    echo -e "${GR}[!] No CONFIG file found.${NC}"
+                fi
+                echo -e "\n${BL}==================================================${NC}"
+                pause
+                continue
+                ;;
+            e|E)
+                sort -u -o "$CONFIG" "$CONFIG"
+				return
+                ;;
+            *)
+                continue
+                ;;
+        esac
+    done
 }
 
 restart_httpd() {
@@ -1124,15 +1126,16 @@ do_darkmode() {
 		DARKCSS=".section-header { background: transparent !important; color: #fff; font: bold 12px/16px sans-serif; padding: 12px; text-align: center; border: 0 !important; box-shadow: 0 !important; }
 		.header-stats-row { margin-top: 15px !important; }
 		.modal-grid .section-header { min-height: 85px !important; }
-		.report-column { width: 100%; background: transparent !important; border: 1px solid #475a68; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
+		.report-column { width: 100%; background: transparent !important; border: none !important; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
 		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: transparent !important; vertical-align: middle; text-align: center; }
-		table.report_table tfoot td { border-top: none !important; border-bottom: none !important; box-shadow: none !important; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }"
-		
+		table.report_table tfoot td { border-top: none !important; border-bottom: none !important; box-shadow: none !important; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
+		.sep-line { display: none !important; }"
 	else
 		DARKCSS=".section-header { background: linear-gradient(to bottom, #171b1f, #354961); color: #ffffff; font-weight: bold; padding: 12px; text-align: center; border-bottom: 1px solid #475a68; }
 		.report-column { width: 100%; background: #1c232b; border-radius: 8px; border: 1px solid #475a68; overflow: hidden; display: flex; flex-direction: column; }
 		table.report_table td { padding: 6px; border-bottom: 1px solid #3d454b; background: #1c232b; vertical-align: middle; text-align: center; }
-		table.report_table tfoot td { border-top: 1px solid #475a68; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }"
+		table.report_table tfoot td { border-top: 1px solid #475a68; padding: 12px 10px !important; font-weight: bold; background: #171b1f; color: #fff; }
+		.sep-line { border: 0; border-top: 1px solid #475a68; margin: 8px -12px; width: calc(100% + 24px); display: block; }"
 	fi
 }
 
@@ -2086,7 +2089,6 @@ cat <<HTML >> "$WEB_PAGE"
 	table.report_table tr td:first-child { text-align: left; padding-left: 10px; }
 	table.report_table thead th:first-child { text-align: left; padding-left: 10px; }
 	.f-res { color: #0096ff; }
-	.sep-line { border: 0; border-top: 1px solid #475a68; margin: 8px -12px; width: calc(100% + 24px); display: block; }
 	.pulse-blue { color: #00e5ff !important; font-weight: bold; animation: pulse-blue-glow 2s infinite; }
 	@keyframes pulse-blue-glow { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 	.new-device-row { background-color: rgba(0, 229, 255, 0.1) !important; animation: pulse-blue-glow 2s infinite; }
