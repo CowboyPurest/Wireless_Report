@@ -1579,7 +1579,8 @@ get_row() {
 }
 
 final_chk() {
-	[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL"
+	ssid="9BBD95C7B878AA813160A46B05F04649"
+	[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL$NUMBERED_NODE"
 	[ -z "$ssid" ] && ssid="Wireless"
     if [ "$rssi" -ge 0 ] && [ "$rssi" -le 1 ]; then
         rssi=-54
@@ -1961,6 +1962,7 @@ for line in $SSH_NODES; do
         NODE_COLOR=$(echo $N_COLORS | cut -d' ' -f$((COLOR_INDEX)))
 		[ -z "$NODE_COLOR" ] && NODE_COLOR="#ffffff"
         NODE_NUM="<span style='color:$NODE_COLOR;'><sup>$NUMBERED_NODE</sup></span>"
+		export NODE_NUM
         NODE_BRAND="<span class='router-branding' style='color:$NODE_COLOR;'>${NODE_NAME}<sup>$NUMBERED_NODE</sup></span>"
         [ -z "$N_NAMES" ] && N_NAMES="$NODE_BRAND" || N_NAMES="$N_NAMES&ensp;$NODE_BRAND"
 		N_TEMP_RAW=$(echo "$NODE_OUT" | grep "TEMP|" | cut -d'|' -f2)
@@ -2002,10 +2004,16 @@ for line in $SSH_NODES; do
         done <<EOF
 $(echo "$NODE_OUT" | grep "DATA|")
 EOF
+
 NODE_TOTALS="${NODE_TOTALS}${NODE_TOTALS:+$DOT}<span style='color:$NODE_COLOR;'>$NODE_DEVICES</span>"
     fi
 done
 GRAND_TOTAL=$((MAIN_DEVICE_TOTAL + NODE_DEVICE_TOTAL))
+if [ "$NUMBERED_NODE" -gt 3 ]; then
+    LAYOUT_STYLE="text-align: left; justify-content: flex-start;"
+else
+    LAYOUT_STYLE="text-align: center; justify-content: center;"
+fi
 BRAND_LINE_ALL="<span class='router-branding'>$MAIN_NAME</span>&ensp;$N_NAMES"
 [ "$NUMBERED_NODE" -gt 0 ] && R_TITLE="Wireless Report AiMesh" || R_TITLE="Wireless Report"
 if [ "$NUMBERED_NODE" -ge 1 ]; then
@@ -2478,7 +2486,7 @@ fi
 cat <<HTML >> "$WEB_PAGE"
           </div>
           <div id="allCol" class="report-column">
-            <div class="section-header">
+            <div class="section-header" style="$LAYOUT_STYLE">
               $BRAND_LINE_ALL<br>
               <span style="font-size:11px; font-weight:bold;">Updated: $CUR_TIME</span>
               <hr class="sep-line">
@@ -2495,7 +2503,7 @@ cat <<HTML >> "$WEB_PAGE"
                 <th onclick="sortTable(6, 'allTable')">UPTIME</th>
               </tr></thead>
               <tbody>$ALL_ROWS</tbody>
-              <tfoot><tr><td colspan="7" style="text-align: center !important;">Uptime: $TOTAL_UPTIME&ensp;Reboot: $TOTAL_BOOTTIME</td></tr></tfoot>
+              <tfoot><tr><td colspan="7" style="$LAYOUT_STYLE">Uptime: $TOTAL_UPTIME&ensp;Reboot: $TOTAL_BOOTTIME</td></tr></tfoot>
             </table>
           </div>
         </div>
