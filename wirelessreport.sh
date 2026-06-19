@@ -1579,7 +1579,6 @@ get_row() {
 }
 
 final_chk() {
-	ssid="9BBD95C7B878AA813160A46B05F04649"
 	[ "${#ssid}" -eq 32 ] && ssid="BACKHAUL$NUMBERED_NODE"
 	[ -z "$ssid" ] && ssid="Wireless"
     if [ "$rssi" -ge 0 ] && [ "$rssi" -le 1 ]; then
