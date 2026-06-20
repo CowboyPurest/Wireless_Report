@@ -625,7 +625,8 @@ ssh_keys() {
 	SSH_KEY="/root/.ssh/id_dropbear"
     local pub_key=$(dropbearkey -y -f "/root/.ssh/id_dropbear" | grep "^ssh-rsa")
     # Constrain key to LAN only — prevents use from WAN if private key is ever leaked
-    local constrained_key='from="192.168.50.0/24",no-port-forwarding,no-X11-forwarding,no-agent-forwarding '"$pub_key"
+    # Dropbear only supports from= and no-port-forwarding (not OpenSSH's no-X11/no-agent)
+    local constrained_key='from="192.168.50.0/24",no-port-forwarding '"$pub_key"
     local current_keys=$(nvram get sshd_authkeys)
 	local combined_keys=$(printf "%s\n%s" "$current_keys" "$constrained_key" | sed '/^$/d' | sort -u)
 	echo -e "\n${YL}[i] Injecting Key into NVRAM...${NC}\n"
