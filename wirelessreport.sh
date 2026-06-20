@@ -49,7 +49,7 @@ LEASES_CACHE="/tmp/dnsmasq_leases.cache"
 DEVICE_LIST_CACHE="/tmp/asus_device_list.cache"
 CUSTOM_CLIENTS_CACHE="/tmp/custom_clients.cache"
 GITHUB="https://raw.githubusercontent.com/JB1366/Wireless_Report/main/wirelessreport.sh"
-REMOTE_VER=$(curl -sfL --retry 3 "$GITHUB" | grep "SCRIPT_VERSION=" | head -n 1 | cut -d'"' -f2 | tr -cd '0-9.')
+REMOTE_VER=$(cat "$INSTALL_DIR/remote_ver.cache" 2>/dev/null || echo "")
 [ -f "/root/.ssh/id_dropbear" ] && SSH_KEY="/root/.ssh/id_dropbear" || SSH_KEY=""
 BL='\033[38;5;39m'; GR='\033[0;32m'; NC='\033[0m'; RD='\033[0;31m'
 UL='\033[4m'; WH='\e[1;37m'; YL='\033[0;33m'; GN_BG="\e[42;37m"
@@ -261,6 +261,7 @@ do_install() {
         sed -i "/wireless_report/d" "$SE_FILE"
         echo 'if [ "$1" = "restart" ] && [ "$2" = "wireless_report" ]; then sh '$REPORT_SCRIPT'; fi # Wireless Report' >> "$SE_FILE"
         chmod +x "$SE_FILE"
+        cru a WRUpdateCheck "0 3 * * * sh $REPORT_SCRIPT update_check"
         restart_httpd
 		install=""
 		logger -p user.info -t "Wireless_Report" "(v$REMOTE_VER) successfully installed."
@@ -623,8 +624,10 @@ ssh_keys() {
     cp /jffs/.ssh/id_dropbear /root/.ssh/id_dropbear
 	SSH_KEY="/root/.ssh/id_dropbear"
     local pub_key=$(dropbearkey -y -f "/root/.ssh/id_dropbear" | grep "^ssh-rsa")
+    # Constrain key to LAN only — prevents use from WAN if private key is ever leaked
+    local constrained_key='from="192.168.50.0/24",no-port-forwarding,no-X11-forwarding,no-agent-forwarding '"$pub_key"
     local current_keys=$(nvram get sshd_authkeys)
-	local combined_keys=$(printf "%s\n%s" "$current_keys" "$pub_key" | sed '/^$/d' | sort -u)
+	local combined_keys=$(printf "%s\n%s" "$current_keys" "$constrained_key" | sed '/^$/d' | sort -u)
 	echo -e "\n${YL}[i] Injecting Key into NVRAM...${NC}\n"
 	nvram set sshd_authkeys="$combined_keys"
     nvram commit
@@ -1078,7 +1081,7 @@ ssh_error() {
 
 header_box() {
     LOCAL_HASH=$(sha256sum "$0" | awk '{print $1}')
-    REMOTE_HASH=$(curl -sfL --retry 3 "$GITHUB" | sha256sum | awk '{print $1}')
+    REMOTE_HASH=$(cat "$INSTALL_DIR/remote_hash.cache" 2>/dev/null || echo "")
     if [ -n "$REMOTE_VER" ] && [ "$REMOTE_VER" != "$SCRIPT_VERSION" ]; then
         HOVER_TEXT="Current Script v$SCRIPT_VERSION <br> New Version v$REMOTE_VER available"
         V_WIDTH="190px"
@@ -2502,6 +2505,15 @@ HTML
 rm -rf "$SEEN_MACS" "$HISTORY_CACHE" "$KNOWN_CACHE" "$ARP_CACHE" "$LEASES_CACHE" "$YAZ_CACHE" "$CUSTOM_CLIENTS_CACHE" "$DEVICE_LIST_CACHE" "$NODE_DATA_DIR" 2>/dev/null
 }
 
+update_check() {
+    local content
+    content=$(curl -sfL --retry 3 "$GITHUB")
+    if [ -n "$content" ]; then
+        printf "%s" "$content" | grep "SCRIPT_VERSION=" | head -n 1 | cut -d'"' -f2 | tr -cd '0-9.' > "$INSTALL_DIR/remote_ver.cache"
+        printf "%s" "$content" | sha256sum | awk '{print $1}' > "$INSTALL_DIR/remote_hash.cache"
+    fi
+}
+
 case "$1" in
     install)
         # Install/Uninstall options
@@ -2515,6 +2527,10 @@ case "$1" in
         # Called by services-start to mount menu
         INJECT="2"
 		inject_menu
+        ;;
+	update_check)
+        # Called by daily cron — fetches remote version/hash into cache
+        update_check
         ;;
 	amtmupdate)
         # Called by AMTM for autoupdates
