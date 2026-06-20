@@ -48,7 +48,7 @@ HISTORY_CACHE="/tmp/rssi_history.cache"
 LEASES_CACHE="/tmp/dnsmasq_leases.cache"
 DEVICE_LIST_CACHE="/tmp/asus_device_list.cache"
 CUSTOM_CLIENTS_CACHE="/tmp/custom_clients.cache"
-GITHUB="https://raw.githubusercontent.com/JB1366/Wireless_Report/main/wirelessreport.sh"
+GITHUB="https://raw.githubusercontent.com/CowboyPurest/Wireless_Report/main/wirelessreport.sh"
 REMOTE_VER=$(cat "$INSTALL_DIR/remote_ver.cache" 2>/dev/null || echo "")
 [ -f "/root/.ssh/id_dropbear" ] && SSH_KEY="/root/.ssh/id_dropbear" || SSH_KEY=""
 BL='\033[38;5;39m'; GR='\033[0;32m'; NC='\033[0m'; RD='\033[0;31m'
